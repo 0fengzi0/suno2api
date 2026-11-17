@@ -1,0 +1,149 @@
+{
+  "page_url": "https://suno.com/create",
+  "page_sha256": "840756bd699c9130b809438686f434e3c528cac90a6a6d131f67620255372cb8",
+  "source": "Public static GET, without Cookie or Authorization",
+  "observations": [
+    {
+      "id": "submit_hook",
+      "url": "https://suno.com/_next/static/immutable/chunks/3mljjx2hhgo9p.js",
+      "file": "work/web-create/3mljjx2hhgo9p.js",
+      "sha256": "38ee4cd61de4a8d34aa7968782135d3f71495a480fc11144144310af42406ada",
+      "char_offset": 1254087,
+      "text": "async function z({transactionLogger:e,session:t,openModal:r,openModalWithData:i,i18nInstance:a,token:n,tokenProvider:s,createSessionToken:u,params:p,signal:m,beforeSubmit:b,suppressErrorToasts:v,hasFreeVoxGrantForModel:C,resolveFreeVoxModel:S=!1}){let k=t.userId,I=p.midiUploadId;await V({userId:k,midiUploadId:I});let N=p.agenticPersonaId&&p.agenticPersonaIsVox||p.references?.some(e=>e.type===h.w.Persona?e.personaId&&\"vox\"===e.selectedVersion:e.type===h.w.Stack&&e.tasks.some(e=>\"vox\"===e.task&&e.personaId&&\"vox\"===e.selectedVersion)),M=S&&N?(0,j.V)(t):null;M&&(p={...p,modelOverride:M});let E=t.sub?.plan?.id||(t.sub?.plans||[]).find(e=>e.plan_key===T.s.Free)?.id,U=(0,g.e)(n,u,E,p,e.transactionUuid,t,s);(0,g.r)(U);let L=U.mv,W=t.billingModels.find(e=>e.external_key===L);if(W&&!W.can_use&&!C(t,L??\"\"))return i(c.G.UPSELL_MODAL,{feature:A.G.UPGRADE_LATEST_MODEL}),{clips:[],requestId:\"\",clipReviewPromptId:null};let G=Date.now(),{data:$,error:H,response:K}=await t.apiClient.POST(F.Hg,{body:U,signal:m,middleware:b?[(0,x.$)(b)]:void 0}),q=H?.error_type;if($?.clips?.length){let r=Date.now()-G,i=$.clips.map(e=>e.id);I&&t.userId===k&&(0,B.J)({userId:k,uploadId:I,clipIds:i}),(0,O.F)(i),(0,D.T)(i,G,\"create\"),i.forEach(e=>{(0,R.Y)(e,$.id)});let a=p.prompt.type===y.Z.Custom?p.prompt.lastTagsGeneration:void 0,n=p.prompt.type===y.Z.Custom?p.prompt.tags:void 0,l=a&&null!=n?a.generatedTags!==n:void 0,o=l&&a&&null!=n?Math.abs(a.generatedTags.length-n.length):void 0;e.logWebUserEvent({actionName:\"GenerationStartSuccess\",context:{clipIds:i,clipCount:i.length,createSurface:p.createSurface,timeToShowMs:r,modelVersion:W?.name,modelKey:L??void 0,customModelOwnership:W?.custom_model_ownership,personalizationEnabled:p.stylesPersonalizationEnabled,wasUpsampleEdited:l,upsampleEditDistance:o}}),e.logWebUserEvent({actionName:\"GenerationStartSuccessSingle\",context:{clipIds:i,timeToShowMs:r}})}else if(K?.status===429){let r=t.sub?.plan?.plan_key===T.s.Free;if(!v){let e=function(e){try{let t=\"string\"=="
+    },
+    {
+      "id": "submit_captcha_and_followups",
+      "url": "https://suno.com/_next/static/immutable/chunks/3mljjx2hhgo9p.js",
+      "file": "work/web-create/3mljjx2hhgo9p.js",
+      "sha256": "38ee4cd61de4a8d34aa7968782135d3f71495a480fc11144144310af42406ada",
+      "char_offset": 1258409,
+      "text": "function W({createSessionToken:e,getCreateAnalyticsSnapshot:n}){let{session:l,project:o,queryClient:c}=(0,M.g)(),{openModal:d,openModalWithData:f}=(0,p.G)(),g=(0,u.useAppI18n)(),h=(0,t.d)(),y=(0,b.B)(s.q,e=>e?e.clipCreated:r.f),v=(0,b.B)(s.q,e=>e.clipRequestIdRef),{checkForNudge:C}=(0,a.a)(),w=(0,m.A)()?.surface,x=(0,S.O)(),_=(0,i.useCallback)(async(t,r,i)=>{let a=i?.createAnalyticsSnapshot,s=null!=a?()=>a:n;if(null==s)throw Error(\"Generation analytics require a request snapshot or a configured analytics snapshot getter\");await V({userId:l.userId,midiUploadId:r.midiUploadId});let u=null==r.createSurface&&null!=w?{...r,createSurface:w}:r,p=await l.getCaptchaTokenIfRequired(E.K.Generation),m=null!=p?l.generationCaptchaVersion:null,b=await z({transactionLogger:t,session:l,openModal:d,openModalWithData:f,i18nInstance:g,token:p,tokenProvider:m,createSessionToken:e,params:u,signal:i?.signal,beforeSubmit:i?.beforeSubmit,suppressErrorToasts:i?.suppressErrorToasts,hasFreeVoxGrantForModel:x,resolveFreeVoxModel:i?.resolveFreeVoxModel});for(let e of(i?.onRequestId?.(b.requestId),b.clipReviewPromptId&&i?.onClipReviewPromptId?.(b.clipReviewPromptId),b.clips.length>0&&(0,N.h)(),(0,k.M)(b.clips,c),(0,k.s)(b.clips.map(e=>(0,k.F)(e.id,c)??e),h),b.clips)){let t=(0,k.F)(e.id,c)??e;(0,B.g)({userId:l.userId,clip:t})}b.clips.forEach(e=>{v.current[e.id]=b.requestId}),(0,I.f)(b.clips,c),b.clips.forEach(e=>y((0,k.F)(e.id,c)??e));let C=(0,j.H)(l);return l.loadSubscriptionInfo(),U.Y.logAudioCreationEvent(L.t.createSong,s(),l,{generateInstanceToken:e,newClipIds:b.clips.map(e=>e.id),isProjectsEnabled:C,projectId:C&&o.currentProjectId!==F.Yp?o.currentProjectId:null}),b.clips},[e,l,d,f,g,y,v,h,c,n,o.currentProjectId,w,x]);return(0,i.useCallback)((...e)=>{let t=_(...e);return t.catch(()=>void 0).finally(()=>void C()),t},[_,C])}function G(){return W({createSessionToken:(0,n.A)(),getCreateAnalyticsSnapshot:(0,v.J)()})}},569041,e=>{var t,r=e.i(103929),i=e.i(248949),a=e.i(870357);let n=new Set([\"desktop_create_form\",\"mobile_create_drawer\"]);var l=((t=l||{}).Pending=\"pending\",t.Complete=\"complete\",t.Failed=\"failed\",t);let o=new Map,s=new Map,c=0,d=new Set;function u(e){return\"complete\"===e.status?{state:\"complete\",title:e.title}:(0,a.A)(e.status)?{state:\"failed\",title:e.title}:{state:\"pending\",title:e.title}}function p(e){return\"complete\"===e.state||\"failed\"===e.state}function m(e){return[...e.clips.values()].some(e=>\"complete\"===e.state)}function f(e){return e?.trim()||null}async function g({announce:e,namespace:t,getText:a}){try{let n=await (0,i.S)({instance:(0,r.getClientI18n)(),namespace:t,fallback:e=>null,resolve:e=>a(e)});n&&e(n)}catch{return}}function h(e){return e(\"stems.autoSplitStartedA11y\")}function y({clip:e,announce:t}){g({announce:t,namespace:\"songsAndPlaylists\",getText:t=>(function({t:e,title:t}){let r=f(t);return r?e(\"generationPolling.songCanPlayA11y\",{title:r}):e(\"gen"
+    },
+    {
+      "id": "web_defaults",
+      "url": "https://suno.com/_next/static/immutable/chunks/0g_czh1nog7ev.js",
+      "file": "work/web-create/0g_czh1nog7ev.js",
+      "sha256": "a607105979e10e320185177711bf09ecc72fef5366de22a60bbef5d86bdf2c1b",
+      "char_offset": 107185,
+      "text": "let h={project_id:void 0,token:void 0,task:void 0,generation_type:\"TEXT\",title:void 0,tags:void 0,negative_tags:void 0,mv:void 0,prompt:void 0,gpt_description_prompt:void 0,make_instrumental:!1,user_uploaded_images_b64:null,metadata:{},override_fields:[],cover_clip_id:null,cover_start_s:null,cover_end_s:null,persona_id:null,artist_clip_id:null,artist_start_s:null,artist_end_s:null,continue_clip_id:null,continued_aligned_prompt:null,continue_at:null,infill_context_start_s:void 0,infill_context_end_s:void 0,infill_start_s:void 0,infill_end_s:void 0,infill_dur_s:void 0,stem_type_id:void 0,stem_type_group_name:void 0,stem_task:void 0,stem_name:void 0};u.n.V3;let _={[u.n.V3]:\"chirp-v3-5-tau\",[u.n.V3_5]:\"chirp-v3-5-tau\",[u.n.V4]:\"chirp-v4-tau\",[u.n.V4_5]:\"chirp-auk\",[u.n.V4_5_PLUS]:\"chirp-bluejay\",[u.n.V5]:\"chirp-crow\",[u.n.V5_5]:\"chirp-fenix\",[u.n.V6_MINI]:\"chirp-goose\",[u.n.V6]:\"chirp-hawk\"},I={[u.n.V3]:\"chirp-v3-0\",[u.n.V3_5]:\"chirp-v3-5\",[u.n.V4]:\"chirp-v4\",[u.n.V4_5]:\"chirp-auk\",[u.n.V4_5_PLUS]:\"chirp-bluejay\",[u.n.V5]:\"chirp-crow\",[u.n.V5_5]:\"chirp-fenix\",[u.n.V6_MINI]:\"chirp-goose\",[u.n.V6]:\"chirp-hawk\"},v=[u.n.V3,u.n.V3_5,u.n.V4,u.n.V4_5,u.n.V4_5_PLUS,u.n.V5,u.n.V5_5,u.n.V6_MINI,u.n.V6],S={[u.n.V3]:\"chirp-v3-0\",[u.n.V3_5]:\"chirp-v3-5\",[u.n.V4]:\"chirp-v4\",[u.n.V4_5]:\"chirp-auk\",[u.n.V4_5_PLUS]:\"chirp-bluejay\",[u.n.V5]:\"chirp-crow\",[u.n.V5_5]:\"chirp-fenix\",[u.n.V6_MINI]:\"chirp-goose\",[u.n.V6]:\"chirp-hawk\"},y=(e,t)=>{if((0,g.N)(t,S[e]))return e;for(let e=v.length-1;e>=0;e--){l"
+    },
+    {
+      "id": "web_metadata_and_simple",
+      "url": "https://suno.com/_next/static/immutable/chunks/0g_czh1nog7ev.js",
+      "file": "work/web-create/0g_czh1nog7ev.js",
+      "sha256": "a607105979e10e320185177711bf09ecc72fef5366de22a60bbef5d86bdf2c1b",
+      "char_offset": 111941,
+      "text": "B={web_client_pathname:window.location.pathname,create_surface:a.createSurface,is_max_mode:a.maxMode,is_mumble:(0,c.w)(T)?a.mumbleMode:void 0,create_mode:a.prompt.type===u.Z.Custom?\"custom\":\"simple\",user_tier:i,from_studio_project_id:a.studioProjectId,create_session_token:t,disable_volume_normalization:a.disableVolumeNormalization??!1,forced_infer_config:p.e?window.matrixModeOverrides:void 0,...a.vocalGender?{vocal_gender:a.vocalGender}:{},...a.isSpeech?{is_speech:!0,backing_music:a.backingMusic}:{},...a.references?.[0]?.type!==n.w.FixedInfill&&E?{control_sliders:E}:{},batch_offset:a.batchOffset,...a.recreatedFromClipId?{recreated_from_clip_id:a.recreatedFromClipId}:{},...a.soundConfigs?{sound_configs:a.soundConfigs}:{},...a.modelConfig?{model_config:a.modelConfig}:{},...a.promptRec?{prompt_rec_id:a.promptRec.promptRecId,prompt_rec_run_id:a.promptRec.promptRecRunId,prompt_rec_source:a.promptRec.source,prompt_rec_is_edited:a.promptRec.isEdited,prompt_rec_is_filled:a.promptRec.isFilled,prompt_rec_display_id:a.promptRec.displayId,prompt_rec_suggestion_source:a.promptRec.suggestionSource}:{}},M={...h,transaction_uuid:o,edit_session_id:a.editSessionId,project_id:a.projectId===f.Yp?void 0:a.projectId,...a.creationSource?{creation_source:a.creationSource}:{},token:e,token_provider:v,mv:T,prompt:a.prompt.type===u.Z.Custom&&a.prompt.lyrics||\"\",duration:a.duration,lyrics_project_id:a.lyricsProjectId,lyricist_id:a.lyricistId,metadata:B};if(a.prompt.type===u.Z.Custom)M.title=a.prompt.title||\"\",M.tags=a.prompt.tags||\"\",M.negative_tags=a.prompt.negativeTags||\"\",M.make_instrumental=a.references?.some(e=>[n.w.Infill,n.w.FixedInfill].includes(e.type))?void 0:!a.prompt.forceVocalOnEmptySubject&&!a.prompt.lyrics?.trim()&&!a.prompt.lyricsSubject?.trim()&&!a.mumbleMode,a.prompt.lastTagsGeneration&&(M.metadata.last_tags_generation={tags:a.prompt.lastTagsGeneration.generatedTags,request_id:a.prompt.lastTagsGeneration.requestId,original_tags:a.prompt.lastTagsGeneration.originalTags,personalization_enabled:a.prompt.lastTagsGeneration.personalizationEnabled}),a.prompt.lyricsSubject&&(M.gpt_description_prompt=a.prompt.lyricsSubject,(\"agentic_thinking\"!==a.task||a.prompt.tags)&&(M.override_fields=[\"tags\"]),a.prompt.lyricsModel&&(M.metadata.lyrics_model=a.prompt.lyricsModel));else if(a.prompt.type===u.Z.Onebox){M.gpt_description_prompt=a.prompt.prompt||\"\",M.metadata.lyrics_model=a.prompt.lyricsModel||f.c_,M.make_instrumental=a.prompt.instrumental||!1;let e=[];a.prompt.overrideLyrics&&(e.push(\"prompt\"),M.prompt=a.prompt.overrideLyrics),a.prompt.overrideTags&&(e.push(\"tags\"),M.tags=a.prompt.overrideTags),a.prompt.overrideTitle&&(M.title=a.prompt.overrideTitle),e.length&&(M.override_fields=e)}if(a.references&&a.references.length>0){let e=a.references.filter(e=>e.type===n.w.Sample),t=a.references.find(e=>e.type===n.w.Mashup),i=a.references.find(e=>e.type===n.w.Cover),r=a.references.find(e=>e.type===n.w.Persona),o=a.references.find(e=>e.type===n.w.Extend),l=a.references.find(e=>e.type===n.w.Infill||e.type===n.w.FixedInfill),s=a.references.find(e=>e.type===n.w.GenStem),d=a.references.find(e=>e.type===n.w.StemCondition),c=a.references.find(e=>e.type===n.w.Playlist),f=a.references.find(e=>e.type===n.w.Underpaint),p=a.references.find(e=>e.type===n.w.Overpaint),g=a.references.find(e=>e.type===n.w.Stack);if(M.task=x,g&&(M.metadata.stacked_task_clips=g.tasks.map(C)),r&&(r.clipId&&(M.artist_clip_id=r.clipId),M.persona_id=r.personaId,M.artist_start_s=r.startSeconds??null,M.artist_end_s=r.endSeconds??null,g||(M.override_fields=a.prompt.type===u.Z.Custom&&a.prompt.lyricsSubject?[\"tags\"]:[\"prompt\",\"tags\"])),!g){if(e.length){let t=e.flatMap(e=>e.samples),i=1===t.length&&t[0].mode===n.t.Chop?t[0]:null;i?(M.chop_sample_clip_id=i.clipId,M.chop_sample_start_s=i.startSeconds??null,M.chop_sample_end_s=i.endSeconds??null):(M.sample_clip_ids=t.map(e=>e.clipId),M.sample_clip_starts=t.map(e=>e.startSeconds??null),M.sample_clip_ends=t.map(e=>e.endSeconds??null),M.sample_is_stem=t.map(e=>e.mode!==n.t.AsIs),M.sample_is_permuted=t.map(e=>e.permute??!0))}t&&(M.mashup_clip_ids=t.clipIds),i&&(M.cover_clip_id=i.clipId,M.cover_start_s=(0,m.f)(i.startSeconds),M.cover_end_s=(0,m.f)(i.endSe"
+    },
+    {
+      "id": "web_api_client",
+      "url": "https://suno.com/_next/static/immutable/chunks/1eqh21rsisf76.js",
+      "file": "work/web-create/1eqh21rsisf76.js",
+      "sha256": "a1c595269251d494f82e940f8837b18b4f337b2a3c2475cc73506b901a439cd3",
+      "char_offset": 10315,
+      "text": "async function g(){try{let e={timestamp:new Date().getTime()};return JSON.stringify({token:btoa(JSON.stringify(e))})}catch(e){return JSON.stringify({token:\"error\"})}}async function y({enableImpersonation:e=!0}={}){let t=e?f:d,r=t?await t():null,i=await g(),o=new URLSearchParams(window.location.search).get(s.Wi),a=new URLSearchParams(window.location.search).get(s.dg)||null,c=new URLSearchParams(window.location.search).get(s.qa),p=new URLSearchParams(window.location.search).get(s.GN),h=(0,u.M)();return{...function(e){let t=l(e);if(t)return{\"Accept-Language\":t}}(l((0,n.getClientI18n)().resolvedLanguage))??{},...r?{Authorization:`Bearer ${r}`}:{},...h?{\"Device-Id\":h}:{},...i?{\"Browser-Token\":i}:{},...o?{\"Referring-Pathname\":o}:{},...a?{\"Referring-Url-Params\":a}:{},...c?{\"Referring-Origin\":c}:{},...p?{\"Referring-External-Referrer\":p}:{}}}let w=Symbol(\"apiRequestValidation\");function b({enableImpersonation:e=!0}={}){return(0,t.f)({baseUrl:\"https://suno.com/a\",fetch:function({enableImpersonation:e=!0}={}){return async(t,n)=>{let r=(0,a.r)(t);r&&(r.phase=a.z.PreparingHeaders);let i=await y({enableImpersonation:e}),o=new Headers;if(t instanceof Request)for(let[e,n]of t.headers)o.set(e,n);if(n?.headers)for(let[e,t]of new Headers(n.headers))o.set(e,t);for(let[e,t]of Object.entries(i))o.set(e,t);if(t instanceof Request){let e=t[w];e&&(t.signal.throwIfAborted(),e())}return r&&(r.phase=a.z.AwaitingResponse),fetch(t,{...n,headers:o}).then(async e=>{let t,n;return r&&(0,a.K)(r,e),429===e.status&&e.url.endsWith(\"/update_reaction_type/\")&&c(),t=new Date().getTime(),(n=e.headers.get(\"Session-Id\"))&&(n!=h?(h=n,m=t+9e5):t>=m&&(h=n,m=t+9e5)),e})}}({enableImpersonation:e})})}let v=null,S=null;function R({enableImpersonation:e=!0}={}){return e?v||(v=b()):S||(S=b({enableImpersonation:!1}))}e.s([\"j\",0,function(){h=null,m=new Date().getTime()},\"T\",0,function(){return\"https://suno.com/a\"},\"K\",0,y,\"t\",0,p,\"_\",0,R,\"Z\",0,function(){return new Date().getTime()>=m?null:h},\"n\",0,function({enableImpersonation:e=!0}={}){let{getToken:t,getClerkToken:n}=(0,o.f)();return f=t,d=n,R({enableImpersonation:e})},\"$\",0,function(e){return{onRequest({request:t}){t[w]=e}}}],79076)},817843,e=>{var t,n=((t={}).Unknown=\"unknown\",t.PreparingHeaders=\"preparing_headers\",t.AwaitingResponse=\"awaiting_response\",t.ReadingResponse=\"reading_response\",t);let r=new WeakMap;function i(e){return e&&/^[\\da-f]{8}-[\\da-f]{4}-[\\da-f]{4}-[\\da-f]{4}-[\\da-f]{12}$/i.test(e)?e:null}e.s([\"z\",()=>n,\"r\",0,function(e){return e instanceof Request?r.get(e):void 0},\"B\",0,i,\"K\",0,function(e,t){e.phase=\"reading_response\",e.responseReceived=!0,e.httpStatus=t.status,e.serverRequestId=i(t.headers.get(\"x-request-id\"));let n=t.headers.get(\"traceparent\")?.match(/^00-([\\da-f]{32})-([\\da-f]{16})-[\\da-f]{2}$/i);e.serverTraceId=!n||/^0+$/.test(n[1])||/^0+$/.test(n[2])?null:n[1]},\"l\",0,function(e,t){r.set(e,t)}])},604829,e=>{let t=new Map,n=new Map,r=\"suno-devtools-ui\",i=new Map,o=new Set([\"ui\",\"logger\",\"help\"]),a=!1,s=0,l=new Set;function u(){try{let e=localStorage.getItem(r);return e?JSON.parse(e):{}}catch{return{}}}function c(){for(let e of(s++,l))e()}function f(e,t){console.warn(`[SunoDevTools] \"${e}\" from plugin \"${t}\" collides with an existing key and was skipped.`)}function d(){if(!a)return;let e={},r=new Set(o),s=new Map;for"
+    },
+    {
+      "id": "device_id",
+      "url": "https://suno.com/_next/static/immutable/chunks/1eqh21rsisf76.js",
+      "file": "work/web-create/1eqh21rsisf76.js",
+      "sha256": "a1c595269251d494f82e940f8837b18b4f337b2a3c2475cc73506b901a439cd3",
+      "char_offset": 24976,
+      "text": "function g(e){return e.replace(/[^a-zA-Z0-9-]/g,\"\")}function y(){for(let e of(0,l.k)().split(\";\")){let[t,...n]=e.trim().split(\"=\");if(\"ajs_anonymous_id\"===t)return function(e){if(!e)return null;let t=e;try{t=decodeURIComponent(t)}catch{}return t.startsWith('\"')&&t.endsWith('\"')&&(t=t.slice(1,-1)),g(t)||null}(n.join(\"=\"))}return null}function w(){let e=(0,u.q)(\"ajs_anonymous_id\")||y();return e?g(e):null}function b(){let e=(0,n.default)(\"localStorage\");if(t)return t;let r=(0,u.q)(\"ajs_anonymous_id\");if(r){let e=g(r);return t=e,e}let i=y();if(i){let n=g(i);return t=n,e&&(0,u.O)(\"ajs_anonymous_id\",n),n}let o=function(e=\"\"){return e?`${e}${a()}`:a()}(e?\"\":\"default-\");return t=o,e&&(0,u.O)(\"ajs_anonymous_id\",o),o}e.s([\"R\",0,\"suno_device_id\",\"q\",0,function(e){if(!e)return!1;let t=w();return!t||t===e},\"V\",0,h,\"N\",0,function(e=c()){if(!e)return\"\";let t=\"\",n=\"\";return e.includes(\"Firefox/\")?(t=\"Firefox\",n=e.match(/Firefox\\/([0-9.]+)/)?.[1]||\"\"):e.includes(\"Edg/\")?(t=\"Edge\",n=e.match(/Edg\\/([0-9.]+)/)?.[1]||\"\"):e.includes(\"Chrome/\")?(t=\"Chrome\",n=e.match(/Chrome\\/([0-9.]+)/)?.[1]||\"\"):e.includes(\"Safari/\")&&(t=\"Safari\",n=e.match(/Version\\/([0-9.]+)/)?.[1]||\"\"),t&&n?`${t} ${n}`:\"\"},\"M\",0,b,\"S\",0,function(e=c()){if(e){if(/android/i.test(e))return\"Android\";else if(/iPad|iPhone|iPod/.test(e))return\"iOS\";else if(/Macintosh/i.test(e))return\"Mac\";else if(/Windows/i.test(e))return\"Windows\";else if(/Linux/i.test(e))return\"Linux\"}return\"Unknown\"},\"h\",0,p,\"r\",0,function(){return\"function\"==typeof window.matchMedia&&h({hasPointerCoarse:window.matchMedia(\"(pointer: coarse)\").matches,hasPointerFine:window.matchMedia(\"(pointer: fine)\").matches,hasHover:window.matchMedia(\"(hover: hover)\").matches,isSmallScreen:!window.matchMedia(`(min-width: ${s.YH}px)`).matches})},\"O\",0,c,\"H\",0,function(){if(\"u\""
+    },
+    {
+      "id": "uuid_v4",
+      "url": "https://suno.com/_next/static/immutable/chunks/1eqh21rsisf76.js",
+      "file": "work/web-create/1eqh21rsisf76.js",
+      "sha256": "a1c595269251d494f82e940f8837b18b4f337b2a3c2475cc73506b901a439cd3",
+      "char_offset": 23292,
+      "text": "197895,e=>{let t;var n=e.i(996967),r=e.i(326649),i=e.i(662818);e.i(773806);let o=[];for(let e=0;e<256;++e)o.push((e+256).toString(16).slice(1));let a=function(e,t,n){if(r.f.randomUUID&&!t&&!e)return r.f.randomUUID();let a=(e=e||{}).random??e.rng?.()??(0,i.f)();if(a.length<16)throw Error(\"Random bytes length must be >= 16\");if(a[6]=15&a[6]|64,a[8]=63&a[8]|128,t){if((n=n||0)<0||n+16>t.length)throw RangeError(`UUID byte range ${n}:${n+15} is out of buffer bounds`);for(let e=0;e<16;++e)t[n+e]=a[e];return t}return function(e,t=0){return(o[e[t+0]]+o[e[t+1]]+o[e[t+2]]+o[e[t+3]]+\"-\"+o[e[t+4]]+o[e[t+5]]+\"-\"+o[e[t+6]]+o[e[t+7]]+\"-\"+o[e[t+8]]+o[e[t+9]]+\"-\"+o[e[t+10]]+o[e[t+11]]+o[e[t+12]]+o[e[t+13]]+o[e[t+14]]+o[e[t+15]]).toLowerCase()}(a)};e.s([\"f\",0,a],197895);var s=e.i(725516),l=e.i(206274),u=e.i(379694);function c(){return\"u\"<typeof navigator?void 0:navigator.userAgent||navigator.vendor}function f(e,t=c()){return e.test(t||\"\")}function d(e=c()){return f(/android|webos|iphone|ipad|ipod|blackberry|iemobile|opera mini/i,e)}function p(){return\"ontouchstart\"in window||\"u\">typeof navigator&&navigator?.maxTouchPoints>0}function h({hasPointerCoarse:e,hasPointerFine:t,hasHover:n,isSmallScreen:r}){"
+    },
+    {
+      "id": "create_session_uuid",
+      "url": "https://suno.com/_next/static/immutable/chunks/1a7i_tor5ew71.js",
+      "file": "work/web-create/1a7i_tor5ew71.js",
+      "sha256": "b529cb0b60e73fe54bac1a31672419d9c423220168f3376af5c2e107c246d758",
+      "char_offset": 60213,
+      "text": "383054,e=>{var t=e.i(986138),r=e.i(197895);e.s([\"f\",0,function(){let[e]=(0,t.useState)(()=>(0,r.f)());return e}])},954936,e=>{var t=e.i(354720);e.s([\"f\",()=>t.f])},550429,e=>{var t=e.i(621192);e.s([\"f\",()=>t.f])},321728,e=>{var t,r=((t={})."
+    },
+    {
+      "id": "create_session_context",
+      "url": "https://suno.com/_next/static/immutable/chunks/3mljjx2hhgo9p.js",
+      "file": "work/web-create/3mljjx2hhgo9p.js",
+      "sha256": "38ee4cd61de4a8d34aa7968782135d3f71495a480fc11144144310af42406ada",
+      "char_offset": 651558,
+      "text": "509924,e=>{var t=e.i(945254),r=e.i(986138),i=e.i(383054);let a=(0,r.createContext)(void 0);e.s([\"s\",0,function({children:e}){let r=(0,i.f)();return(0,t.s)(a.Provider,{value:r,children:e})},\"A\",0,function(){let e=(0,r.useContext)(a);if(!e)throw Error(\"useCreateSessionToken must be used within CreateSessionTokenProvider\");return e}])},590718,e=>{var t=e.i(788833),r=e.i(148345),i=e.i(321656),a=e.i(619117);let n=[[\"global\",\"timedCondition\"],[\"global\""
+    },
+    {
+      "id": "transaction_logger_uuid",
+      "url": "https://suno.com/_next/static/immutable/chunks/2zvfqgedd1iqz.js",
+      "file": "work/web-create/2zvfqgedd1iqz.js",
+      "sha256": "84b131f43450efcd02498f821d9c4154c3541a5f737fb2afec0c09587d94f2e9",
+      "char_offset": 65762,
+      "text": "t.s([\"b\",0,()=>{let t=(0,p.f)();return{logWebUserEvent:e=>{eU({...e,transactionUuid:t})},transactionUuid:t}},\"U\",0,eU,\"a\",0,function(t){eU(t)},\"e\",0,ej,\"v\",0,t=>{eN.userId=t,eK&&eB(),eU({actionName:\"Identify\",context:{isForegrounded:!ez&&eF}})},\"F\",0"
+    },
+    {
+      "id": "transaction_uuid_import",
+      "url": "https://suno.com/_next/static/immutable/chunks/2zvfqgedd1iqz.js",
+      "file": "work/web-create/2zvfqgedd1iqz.js",
+      "sha256": "84b131f43450efcd02498f821d9c4154c3541a5f737fb2afec0c09587d94f2e9",
+      "char_offset": 439,
+      "text": "277565,330050,312113,83673,653514,950496,627994,t=>{let e,n,r,i,o,s,a,u,c;var l,d,h,p=t.i(197895);async function f(){try{await e?.flush()}catch{}}async function v(t,e){let n=new Promise(t=>setTimeout("
+    },
+    {
+      "id": "captcha_helper",
+      "url": "https://suno.com/_next/static/immutable/chunks/38gk3cu5st8f7.js",
+      "file": "work/web-create/38gk3cu5st8f7.js",
+      "sha256": "caef0e41551edb4cf4b6f8e55f148360659bca4c1c288c64e8b21a07835d20ea",
+      "char_offset": 27716,
+      "text": "getCaptchaTokenIfRequired=async e=>{let t;try{let i=await this.apiClient.POST(\"/api/c/check\",{body:{ctype:e}});if(t=i.data?.required,\"generation\"===e){let e=i.data?.captcha_version===Y._?Y._:Y.c,t=this.isTurnstileFallbackLatched?Y.c:e;(0,N.N)(()=>{t!==this.generationCaptchaVersion&&(this.captchaVerification=null,X=null,Z=null),this.generationCaptchaVersion=t})}}catch(i){console.error(\"Failed to check captcha verification:\",i),t=!0,\"generation\"===e&&(0,N.N)(()=>{this.generationCaptchaVersion!==Y.c&&(this.captchaVerification=null,X=null,Z=null),this.generationCaptchaVersion=Y.c})}if(!0!==t)return null;{await this.requestCaptchaMount();let e=this.generationCaptchaVersion===Y._;if(this.captchaVerification){console.log(\"captcha required, awaiting verification\");let t=this.userId??void 0,i=this.clerkId??void 0,r=setTimeout(()=>{(0,z.X)({isTurnstile:e,userId:t,clerkId:i})},3e4),s=await this.captchaVerification();return(clearTimeout(r),console.log(\"captcha verified\",s),null===s&&e&&this.canRetryGenerationCaptchaWithHCaptcha)?await this.retryGenerationCaptchaWithHCaptcha():s}return((0,z._)({reason:\"mount_timeout\",isTurnstile:e,isPaid:!!this.isSubscriber,userId:this.userId??void 0,clerkId:this.clerkId??void 0}),e&&this.canRetryGenerationCaptchaWithHCaptcha)?await this.retryGenerationCaptchaWithHCaptcha():null}};getUserConfig=async()=>{let e;try{e=await this.apiClient.POST(\"/api/user/user_config/\",{body:{}})}catch(e){console.error(\"Failed to fetch user config:\",e);return}let t=e.data;if(t&&(this.userConfigIsLoaded||(this.userConfigIsLoaded=!0),this.shownCreationTour=t.shown_creation_tour,this.hasAcceptedTimbalandTerms=t.has_accepted_timbaland_terms,this.preferredTags=t.preferred_tag"
+    },
+    {
+      "id": "captcha_versions",
+      "url": "https://suno.com/_next/static/immutable/chunks/2pw8ttzonhqw_.js",
+      "file": "work/web-create/2pw8ttzonhqw_.js",
+      "sha256": "91c669e8aae4b865b80b0fc2357836a2522dd9e085a44d9084361fba39d21dd9",
+      "char_offset": 15408,
+      "text": "902224,e=>{var t,i=((t={}).Generation=\"generation\",t);e.s([\"K\",()=>i,\"q\",0,!1,\"c\",0,1,\"_\",0,2])},539594,245321,e=>{var t,i=e.i(653514),n=e.i(627994),s=e.i(27756"
+    },
+    {
+      "id": "lyrics_model_default",
+      "url": "https://suno.com/_next/static/immutable/chunks/1g5dkxxzlkbf7.js",
+      "file": "work/web-create/1g5dkxxzlkbf7.js",
+      "sha256": "e09c72320f203e3f4fe7a58a0d45ee891679e81c71b1306fd920aaeddfba54f9",
+      "char_offset": 8117,
+      "text": "\"c_\",0,\"default\",\"jz\",0,20,\"H5\",0,12,\"Yp\",0,\"default\",\"yP\",0,\"My Workspace\",\"It\""
+    },
+    {
+      "id": "web_route",
+      "url": "https://suno.com/_next/static/immutable/chunks/1g5dkxxzlkbf7.js",
+      "file": "work/web-create/1g5dkxxzlkbf7.js",
+      "sha256": "e09c72320f203e3f4fe7a58a0d45ee891679e81c71b1306fd920aaeddfba54f9",
+      "char_offset": 8542,
+      "text": "\"Hg\",0,\"/api/generate/v2-web/\",\"v1\",0,\"https://play.google.com/store/apps/details?id=com.s"
+    },
+    {
+      "id": "feed_query",
+      "url": "https://suno.com/_next/static/immutable/chunks/0g_czh1nog7ev.js",
+      "file": "work/web-create/0g_czh1nog7ev.js",
+      "sha256": "a607105979e10e320185177711bf09ecc72fef5366de22a60bbef5d86bdf2c1b",
+      "char_offset": 72829,
+      "text": "async function N({apiClient:e,clipIds:t,signal:n}){let i=await e.POST(\"/api/feed/v3\",{body:{filters:{ids:{presence:\"True\",clipIds:t}},limit:t.length},signal:n});return i.data?.clips??[]}async function R({params:e,openTask:t,getClipById:n,apiClient:i}){if(e.prompt.type!==p.Z.Custom)throw Error(\"Custom Open Task requires an Advanced prompt\");let{prom"
+    },
+    {
+      "id": "clip_query",
+      "url": "https://suno.com/_next/static/immutable/chunks/1ae3n-wqcg9vu.js",
+      "file": "work/web-create/1ae3n-wqcg9vu.js",
+      "sha256": "c322488d48ab0453f4a0c15dda9111dc5be8abadd904f64d913f09b6074cf75c",
+      "char_offset": 13712,
+      "text": "e.GET(\"/api/clip/{clip_id}\",{params:{path:{clip_id:r}}});if(i||!n)throw Error(\"Failed to fetch clip\");return t.setQueryData(u.y.clip({clipId:r}),n),n},[e,t])}],40380)},998638,991985,e=>{let t={all:[{scope:\"generation\"}],runningRequests:()=>"
+    }
+  ],
+  "limitations": [
+    "Static code observes browser client construction, not live account/server acceptance.",
+    "No generation POST was sent during this comparison.",
+    "No claim that switching endpoints repairs submitted native jobs.",
+    "Some unrelated public script downloads failed; selected submission, payload, auth-wrapper, captcha and query modules were inspected."
+  ]
+}

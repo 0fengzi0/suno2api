@@ -1,0 +1,9 @@
+/work/
+/dist/
+/downloads/
+/outputs/
+/data/
+/.env
+/config.local.json
+*.token
+*.cookie

@@ -1,0 +1,428 @@
+{
+  "rea": {
+    "parent_evidence_id": "ev_c2a63604a75d97b84c4f3b67a33c909707f545eef92e3e0aab3afbe79c6af788",
+    "summary_evidence_id": "ev_084a41cbe089fe4490d2439a0356d73418e4f8eb2c9e34a1f396d772aa904f08",
+    "page_evidence_id": "ev_834408c6561fc2db1ab0f32c5506e5f4943a516ea91e196ddf84f49f4a5aba3d",
+    "item_evidence_id": "ev_2145a380c45d776962c179aed6dc0e12587106abc874cc275d9a6acdf9495b60",
+    "original_tree_sha256": "598ff80a7e9f94e87a383a6661f7ce2a30b0eaeca67db60ca9c90ef71ca4a86b",
+    "files": 2,
+    "parsed_javascript_files": 2,
+    "parse_failures": 0,
+    "semantic_unknowns": 4151,
+    "limitation": "Static syntax/semantic candidates do not prove execution; external bundle dependencies and dynamic values remain unknown."
+  },
+  "web_static_observations": [
+    {
+      "id": "cookie_read",
+      "url": "https://suno.com/_next/static/immutable/chunks/19gdq4x6qxy9q.js",
+      "source": "work/session-web-js/19gdq4x6qxy9q.js",
+      "sha256": "9b6fcd61d032c9c86d67a43c3aaa68e7ed8123845f1ee5941b442b2f5463adc2",
+      "char_offset": 40257,
+      "text": "455325,C=>{var e=C.i(305223),t=C.i(206274);let r=\"__session\";function n(C){return(0,e.N)((0,t.k)(),C).map(C=>(function(C){try{return decodeURIComponent(C)}catch{return C}})(C))}C.s([\"J\",0,function(){(0,t.u)(r)},\"c\",0,function(){let C=n(e.x)[0]??null;if(!C)return 0;let t=parseInt(C,10);return Number.isFinite(t)?t:0},\"O\",0,function(){return n(r)}])},974710,C=>{C.i(638260);var e=C.i(46199),t=C.i(365943);async function r"
+    },
+    {
+      "id": "normal_form_fetch",
+      "url": "https://suno.com/_next/static/immutable/chunks/19gdq4x6qxy9q.js",
+      "source": "work/session-web-js/19gdq4x6qxy9q.js",
+      "sha256": "9b6fcd61d032c9c86d67a43c3aaa68e7ed8123845f1ee5941b442b2f5463adc2",
+      "char_offset": 40607,
+      "text": "974710,C=>{C.i(638260);var e=C.i(46199),t=C.i(365943);async function r(C,e){return n({path:C,body:e})}async function n({path:C,body:e,signal:r}){let o,i=(0,t.f)(C),a=new URLSearchParams;if(\"object\"==typeof e&&null!==e)for(let[C,t]of Object.entries(e))null!=t&&a.set(C,String(t));try{o=await fetch(i,{method:\"POST\",credentials:\"include\",headers:{\"Content-Type\":\"application/x-www-form-urlencoded\"},body:a.toString(),signal:r})}catch(C){if(r?.aborted||u(C))throw C;throw new s}return l(o,r)}async function o(C,e){return i({path:C,searchParams:e})}async function i({path:C,searchParams:e,signal:r}){let n,o=(0,t.f)(C),a=new URLSearchParams(e),c=o.includes(\"?\")?\"&\":\"?\",d=a.size>0?`${o}${c}${a.toString()}`:o,f={method:\"GET\",credentials:\"include\"};r&&(f.signal=r);try{n=await fetch(d,f)}catch(C){if(r?.aborted||u(C))throw C;throw new s}return l(n,r)}class s extends Error{constructor(){super(\"FAPI request failed due to a network error\"),this.name=\"FapiNetworkError\"}}class a extends Error{responseStatus;constructor(C){super(\"FAPI returned an invalid success response\"),this.name=\"FapiResponseError\",this.responseStatus=C}}function u(C){return\"object\"==typeof C&&null!==C&&\"name\"in C&&(\"AbortError\"===C.name||\"TimeoutError\"===C.name)}async function l(C,t){var r;let n;try{n=await C.json()}catch(e){if(t?.aborted||u(e))throw e;if(C.ok&&e instanceof TypeError)throw new s;if(C.ok)throw new a(C.status);n=null}if(!C.ok){let t=n&&\"object\"==typeof n&&\"errors\"in n?n.errors:null,r=Array.isArray(t)?t:[],o=r[0];throw new e.s(o?.long_message||o?.message||`FAPI request failed: ${C.status}`,{data:r,status:C.status,retryAfter:429===C.status?function(C){let e=C.headers.get(\"Retry-After\")?.trim();if(!e)return;if(/^\\d+(?:\\.\\d+)?$/.test(e)){let C=Number(e);return Number.isFinite(C)?C:void 0}if(!/^(?:Mon|Tue|Wed|Thu|Fri|Sat|Sun), \\d{2} (?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec) \\d{4} \\d{2}:\\d{2}:\\d{2} GMT$/.test(e))return;let t=Date.parse(e);if(!Number.isNaN(t)&&new Date(t).toUTCString()===e)return Math.max(0,(t-Date.now())/1e3)}(C):void 0})}if(!(\"object\"==typeof(r=n)&&null!==r&&!Array.isArray(r)))throw new a(C.status);return n}C.s([\"v\",0,s,\"_\",0,o,\"R\",0,i,\"i\",0,r,\"N\",0,n])},488099,C=>{async function e(e,t){try{let{datadogRum:r}=await C.A(374300);r.addAction(e,t)}catch{}}C.s([\"n\",0,function({accountChange:C,trigger:t,hasClientUatChanged:r}){return e(\"suno_auth.account_change_noticed\",{account_change:C,trigger:t,has_client_uat_changed:r})},\"o\",0,function(C,t){return e(C,t)}])},872490,C=>{var e=C.i(799808),t=C.i(725516);let r=t.gW.filter(C=>C!==t.wp),n=r.map(C=>(0,e.h)(t.FR.Root,C)),o=t.U_.flatMap(C=>r.map(t=>(0,e.h)(C,t))),i=new Set([t.FR.Root,t.FR.LoggedOutHome,...n]),s=[t.FR.Studio,t.FR.StudioLegacy];function a(C){return`${t.FR.SignIn}?redirect_url=${encodeURIComponent(C)}`}C.s([\"O\",0,o,\"_\",0,function(C){return C.response?.last_active_session_id??C.response?.sessions?.[0]?.id??null}"
+    },
+    {
+      "id": "minted_cookie_match",
+      "url": "https://suno.com/_next/static/immutable/chunks/19gdq4x6qxy9q.js",
+      "source": "work/session-web-js/19gdq4x6qxy9q.js",
+      "sha256": "9b6fcd61d032c9c86d67a43c3aaa68e7ed8123845f1ee5941b442b2f5463adc2",
+      "char_offset": 43508,
+      "text": "\"H\",0,function(C,e){return C?e.includes(C)?null:\"minted_session_cookie_missing\":\"no_minted_token\"},\"p\",0,function({returnTo:C,isPublicRoute:e}){let r=C.split(/[?#]/,1)[0];return e|"
+    },
+    {
+      "id": "normal_route",
+      "url": "https://suno.com/_next/static/immutable/chunks/19gdq4x6qxy9q.js",
+      "source": "work/session-web-js/19gdq4x6qxy9q.js",
+      "sha256": "9b6fcd61d032c9c86d67a43c3aaa68e7ed8123845f1ee5941b442b2f5463adc2",
+      "char_offset": 45273,
+      "text": "365943,C=>{var e=C.i(305223);C.s([\"f\",0,function(C){let t=`/api/clerk${C}`,r=function(){let C=\"pk_live_YXV0aC5zdW5vLmNvbSQ\".match(/^pk_(live|test)_(.+)$/);if(!C)return null;try{let e=atob(C[2]).replace(/\\$$/,\"\");return`https://${e}`}catch{return null}}();return r&&(0,e.C)(window.location.hostname)?`${r}${C}`:t}])}])})();\n\n//# sourceMappingURL=0o_v-badbjl7t.js.map\n//# debugId=58ba43cb-14d5-5fd9-a177-fbc8183767f5\n"
+    },
+    {
+      "id": "route_hostname_condition",
+      "url": "https://suno.com/_next/static/immutable/chunks/2me560eozqkeo.js",
+      "source": "work/session-web-js/2me560eozqkeo.js",
+      "sha256": "5ad8d2f242243b390efa07911fab7423bc5279b7060340919c8606b06fcc4c43",
+      "char_offset": 19111,
+      "text": "let T=[\".suno.com\",\".suno.fm\"];function R(e){return T.some(t=>e===t.slice(1)||e.endsWith(t))}e.s([\"w\",()=>O,\"x\",0,\"__client_uat\",\"X\",0,function(e,t){let r=w(e);if(!t)return r;let{pathname:i,"
+    },
+    {
+      "id": "bounded_refresh",
+      "url": "https://suno.com/_next/static/immutable/chunks/2c5ye2i_zyo6b.js",
+      "source": "work/session-web-js/2c5ye2i_zyo6b.js",
+      "sha256": "43c07e7000c87adf96a2b4b8e23bbe006d88243d0089f44589d73efb03e71dd0",
+      "char_offset": 46704,
+      "text": "async function w({session:e,signal:t}){if(e.sessionId&&!e.isVisitor){for(let i=0;i<3;i+=1){let r;if(t.aborted)return;let s=new AbortController,n=()=>s.abort();t.addEventListener(\"abort\",n,{once:!0});let a=setTimeout(()=>s.abort(new DOMException(\"Token refresh timed out\",\"TimeoutError\")),15e3),o=performance.now();try{let i=await (0,c.N)({path:`/v1/client/sessions/${encodeURIComponent(e.sessionId)}/tokens`,signal:s.signal});if(t.aborted)return;let n=(0,l.O)(),a=(0,_.H)(i.jwt,n),d=C(n,i.jwt,Math.floor(Date.now()/1e3));if(a||!d)r=a??\"minted_token_invalid_or_expired\";else{if(d.session.sessionId===e.sessionId&&d.session.userId===e.userId)return void(0,u.o)(\"suno_auth.token_refresh\",{outcome:\"success\",durationMs:Math.round(performance.now()-o)});r=\"minted_session_changed\"}}catch(e){if(t.aborted)return;r=(0,_.t)(e)}finally{clearTimeout(a),t.removeEventListener(\"abort\",n)}if((0,u.o)(\"suno_auth.token_refresh\",{outcome:\"failure\",durationMs:Math.round(performance.now()-o),reason:r}),\"status_401\"===r||\"status_403\"===r||\"minted_session_changed\"===r)return\"terminal\";if(i<2){let e=\"status_429\"===r?5e3:1e3;await function(e,t){return new Promise(i=>{let r=()=>{clearTimeout(s),t.removeEventListener(\"abort\",r),i()},s=setTimeout(r,e);t.addEventListener(\"abort\",r,{once:!0}),t.aborted&&r()})}(e*2**i,t)}}return\"transient\"}}var v=e.i(349526),b=e.i(501088),I=e.i(839889),j=e.i(442357);function P({children:e}){let t=(0,o.S)(),{signIn:i}=(0,b.f)(),{signUp:n}=(0,I.f)(),a=(0,j.f)({throwOnError:!0}),l=(0,s.useCallback)(async e=>{let t=await i.create({strategy:\"phone_code\",identifier:e});return await i.prepareFirstFactor(t.id),{authResourceId:t.id,phoneNumberId:null}},[i]),c=(0,s.useCallback)(async e=>{let t=await n.create({strategy:\"phone_code\",phoneNumber:e});return await n.prepareVerification(t.id),{authResourceId:t.id,phoneNumberId:null}},[n]),u=(0,s.useCallback)(async e=>{await i.prepareFirstFactor(e)},[i]),d=(0,s.useCallback)(async e=>{await n.prepareVerification(e)},[n]),h=(0,s.useCallback)("
+    },
+    {
+      "id": "single_flight",
+      "url": "https://suno.com/_next/static/immutable/chunks/2c5ye2i_zyo6b.js",
+      "source": "work/session-web-js/2c5ye2i_zyo6b.js",
+      "sha256": "43c07e7000c87adf96a2b4b8e23bbe006d88243d0089f44589d73efb03e71dd0",
+      "char_offset": 52401,
+      "text": "let H=(0,s.useCallback)(()=>{if(D.current)return D.current.promise;if(Date.now()<A.current)return Promise.resolve();let e=R.current;if(!M.current||!L(e))return Promise.resolve();let t=new AbortController,i=Promise.resolve().then(async()=>{try{let i=await w({session:e,signal:t.signal});if(!M.current||t.signal.aborted)return;let r=R.current,s=U();s?N(s.token):i===y.Terminal?B():(A.current=Date.now()+3e4,q.current=null,p(e),d(null)),W({previousSession:r,trigger:n.TokenRefresh,hasClientUatChanged:G()})}finally{D.current?.controller===t&&(D.current=null)}});return D.current={sessionId:e.sessionId,userId:e.userId,controller:t,promise:i},i},[B,U,G,W,N]);(0,s.useEffect)(()=>{let e=!0,t=()=>{e&&(N(),F.current=!0,I.current=(0,l.c)(),j.current=I.current,b(!0),U()||H(),(0,u.o)(\"suno_auth.load_session\",{outcome:\"success\"}))};return V?V.ready.then(t):t(),()=>{e=!1}},[V,U,N,H]),(0,s.useEffect)(()=>{if(z(),f&&i){if(O.current=setTimeout(()=>{if(O.current=null,i.isVisitor||!i.sessionId){let e=R.current;N(),W({previousSession:e,trigger:n.SessionExpiry,h"
+    },
+    {
+      "id": "expiry_schedule",
+      "url": "https://suno.com/_next/static/immutable/chunks/2c5ye2i_zyo6b.js",
+      "source": "work/session-web-js/2c5ye2i_zyo6b.js",
+      "sha256": "43c07e7000c87adf96a2b4b8e23bbe006d88243d0089f44589d73efb03e71dd0",
+      "char_offset": 53298,
+      "text": "if(z(),f&&i){if(O.current=setTimeout(()=>{if(O.current=null,i.isVisitor||!i.sessionId){let e=R.current;N(),W({previousSession:e,trigger:n.SessionExpiry,hasClientUatChanged:G()})}else H()},Math.max(1e3*i.exp-Date.now(),0)),!i.isVisitor){let e=Math.floor(Date.now()/1e3),t=i.exp-e-30;t<=0?H():T.current=setTimeout(()=>void H(),1e3*t)}return z}},[f,i,z,G,W,H,N]),(0,s.useEffect)(()=>{let e=e=>{let t=(0,l.c)(),i=G(),r=R.current,s=I.current>0&&0===t;I.current=t;let n=U();if(s){B(),W({previousSession:r,trigger:e,hasClientUatChanged:i"
+    },
+    {
+      "id": "focus_touch",
+      "url": "https://suno.com/_next/static/immutable/chunks/2c5ye2i_zyo6b.js",
+      "source": "work/session-web-js/2c5ye2i_zyo6b.js",
+      "sha256": "43c07e7000c87adf96a2b4b8e23bbe006d88243d0089f44589d73efb03e71dd0",
+      "char_offset": 54489,
+      "text": "function t(){if(\"visible\"!==document.visibilityState)return;let t=U()?.session;if(!t?.sessionId||t.isVisitor)return;let i=Date.now();i<e||(e=i+5e3,(0,c.i)(`/v1/client/sessions/${encodeURIComponent(t.sessionId)}/touch`,{intent:\"focus\"}).catch(()=>{}))}return window.addEventListener(\"focus\",t),()=>window.removeEventListener(\"focus\",t)},[U]);let J=(0,s.useCallback)(async()=>(V&&await V.ready,U()||await H(),U()?.token??null),[V,U,H]),K=(0,s"
+    }
+  ],
+  "android_static_observations": [
+    {
+      "source": "work/jadx/sources/defpackage/vk2.java",
+      "sha256": "6d1b994d26bd151bd96465d12fd3d4be4cbc55bd43ff9e35a61a85c9faefc8be",
+      "lines": [
+        {
+          "line": 43,
+          "text": "    Object g(@k7e(\"signin_id\") String str, @fqf(\"rotating_token_nonce\") String str2, @fqf(\"_is_native\") boolean z, @fqf(\"_clerk_js_version\") String str3, ee3<? super Either<? extends CallError, RemoteGetSignInResponse>> ee3Var);"
+        },
+        {
+          "line": 44,
+          "text": ""
+        },
+        {
+          "line": 45,
+          "text": "    @htd(\"v1/client/sessions/{session_id}/tokens\")"
+        },
+        {
+          "line": 46,
+          "text": "    Object h(@k7e(\"session_id\") String str, @fqf(\"_is_native\") boolean z, @fqf(\"_clerk_js_version\") String str2, ee3<? super Either<? extends CallError, RemotePostSessionTokenResponse>> ee3Var);"
+        }
+      ]
+    },
+    {
+      "source": "work/jadx/sources/defpackage/qj2.java",
+      "sha256": "8ffdb20a33c859eec0e52190aa52b1ff76b3d4c758b9542221fbe88488d9fcc8",
+      "lines": [
+        {
+          "line": 20,
+          "text": "    @Override // defpackage.sc9"
+        },
+        {
+          "line": 21,
+          "text": "    public final vjg intercept(oc9 oc9Var) {"
+        },
+        {
+          "line": 22,
+          "text": "        String str = (String) this.f12215a.d.getValue();"
+        },
+        {
+          "line": 23,
+          "text": "        hp5 hp5Var = hp5.f6723a;"
+        },
+        {
+          "line": 24,
+          "text": "        ee3 ee3Var = null;"
+        },
+        {
+          "line": 25,
+          "text": "        if (str == null) {"
+        },
+        {
+          "line": 26,
+          "text": "            str = (String) ldo.f(hp5Var, new ub(this, ee3Var, 15));"
+        },
+        {
+          "line": 27,
+          "text": "        }"
+        },
+        {
+          "line": 28,
+          "text": "        String str2 = str;"
+        },
+        {
+          "line": 29,
+          "text": "        sxf sxfVar = (sxf) oc9Var;"
+        },
+        {
+          "line": 30,
+          "text": "        udg udgVar = sxfVar.e;"
+        },
+        {
+          "line": 31,
+          "text": "        ldg b = udgVar.b();"
+        },
+        {
+          "line": 32,
+          "text": "        b.a(\"Authorization\", str2);"
+        },
+        {
+          "line": 33,
+          "text": "        vjg b2 = sxfVar.b(b.b());"
+        },
+        {
+          "line": 34,
+          "text": "        String b3 = b2.f.b(\"Authorization\");"
+        },
+        {
+          "line": 35,
+          "text": "        if (b3 != null) {"
+        },
+        {
+          "line": 36,
+          "text": "            udgVar.f14733a.b();"
+        },
+        {
+          "line": 37,
+          "text": "            if (!Intrinsics.areEqual(b3, str2)) {"
+        },
+        {
+          "line": 38,
+          "text": "                boolean booleanValue = ((Boolean) ldo.f(hp5Var, new j1(this, str2, b3, ee3Var, 23))).booleanValue();"
+        },
+        {
+          "line": 39,
+          "text": "                tvi tviVar = this.b;"
+        },
+        {
+          "line": 40,
+          "text": "                if (booleanValue) {"
+        },
+        {
+          "line": 41,
+          "text": "                    tviVar.getClass();"
+        },
+        {
+          "line": 42,
+          "text": "                    return b2;"
+        },
+        {
+          "line": 43,
+          "text": "                }"
+        },
+        {
+          "line": 44,
+          "text": "                tviVar.getClass();"
+        },
+        {
+          "line": 45,
+          "text": "            }"
+        },
+        {
+          "line": 46,
+          "text": "        }"
+        },
+        {
+          "line": 47,
+          "text": "        return b2;"
+        }
+      ]
+    },
+    {
+      "source": "work/jadx/sources/defpackage/nv0.java",
+      "sha256": "33dfb765493e4d33de13a16d7fcf75a79f022e8bba74a62a33cf0f8d9a5dca48",
+      "lines": [
+        {
+          "line": 10,
+          "text": "    public final bgi d;"
+        },
+        {
+          "line": 11,
+          "text": "    public final ku6 e;"
+        },
+        {
+          "line": 12,
+          "text": ""
+        },
+        {
+          "line": 13,
+          "text": "    public nv0(upk upkVar) {"
+        },
+        {
+          "line": 14,
+          "text": "        upkVar.getClass();"
+        },
+        {
+          "line": 15,
+          "text": "        this.f10508a = upkVar;"
+        },
+        {
+          "line": 16,
+          "text": "        bgi a2 = cgi.a(\"\");"
+        },
+        {
+          "line": 17,
+          "text": "        this.b = a2;"
+        },
+        {
+          "line": 18,
+          "text": "        this.c = new qwf(a2);"
+        },
+        {
+          "line": 19,
+          "text": "        bgi a3 = cgi.a(null);"
+        },
+        {
+          "line": 20,
+          "text": "        this.d = a3;"
+        },
+        {
+          "line": 21,
+          "text": "        this.e = new ku6(new ys6(a3, new ub(this, null, 5)), 0);"
+        },
+        {
+          "line": 22,
+          "text": "    }"
+        },
+        {
+          "line": 23,
+          "text": ""
+        },
+        {
+          "line": 24,
+          "text": "    /* JADX WARN: Removed duplicated region for block: B:15:0x002e  */"
+        },
+        {
+          "line": 25,
+          "text": "    /* JADX WARN: Removed duplicated region for block: B:8:0x0022  */"
+        },
+        {
+          "line": 26,
+          "text": "    /*"
+        },
+        {
+          "line": 27,
+          "text": "        Code decompiled incorrectly, please refer to instructions dump."
+        },
+        {
+          "line": 28,
+          "text": "        To view partially-correct add '--show-bad-code' argument"
+        }
+      ]
+    }
+  ],
+  "redacted_runtime_observations": [
+    {
+      "observed_at": "2026-11-17T12:29:08.709810+00:00",
+      "target_origin": "https://auth.suno.com",
+      "endpoint_template": "/v1/client/sessions/{current_session_id}/tokens",
+      "method": "POST",
+      "body": "empty form",
+      "sent_cookie_names": [
+        "__session"
+      ],
+      "authorization_header_sent": false,
+      "redirects_followed": false,
+      "old_expires_at": "2026-11-17T13:03:53+00:00",
+      "old_expiry_remaining_seconds": 2085,
+      "request_count": 1,
+      "file_updated": false,
+      "result": "http_403_layer_unclassified",
+      "http_status": 403,
+      "set_cookie_present": true,
+      "diagnostic_limitation": "Content-Type, CF-Mitigated, WWW-Authenticate, response body and Set-Cookie names/attributes were not retained; do not infer authentication rejection"
+    },
+    {
+      "observed_at": "2026-11-17T12:36:19.491350+00:00",
+      "target_origin": "https://suno.com",
+      "endpoint_template": "/api/clerk/v1/client/sessions/{current_session_id}/tokens",
+      "method": "POST",
+      "body": "empty form",
+      "sent_cookie_names": [
+        "__session"
+      ],
+      "authorization_header_sent": false,
+      "redirects_followed": false,
+      "old_expires_at": "2026-11-17T13:03:53+00:00",
+      "old_expiry_remaining_seconds": 1654,
+      "request_count": 1,
+      "file_updated": false,
+      "http_status": 400,
+      "content_type": "text/html",
+      "server_cloudflare": true,
+      "cf_mitigated_challenge": false,
+      "www_authenticate_present": false,
+      "set_cookie_attributes": [
+        {
+          "name": "statsig_stable_id",
+          "domain": "",
+          "path": "/",
+          "secure": false,
+          "httponly": false,
+          "samesite": "lax",
+          "expires": "Wed, 17 Nov 2027 12:36:19 GMT",
+          "max_age": "31536000",
+          "empty_value": false,
+          "max_age_clears": false
+        },
+        {
+          "name": "ajs_anonymous_id",
+          "domain": ".suno.com",
+          "path": "/",
+          "secure": false,
+          "httponly": false,
+          "samesite": "lax",
+          "expires": "Wed, 17 Nov 2027 12:36:19 GMT",
+          "max_age": "31536000",
+          "empty_value": false,
+          "max_age_clears": false
+        }
+      ],
+      "clears_session_cookie": false,
+      "body_size": 143,
+      "html_challenge_markers": false,
+      "json_object": false,
+      "error_codes": [],
+      "result": "http_error_stopped"
+    },
+    {
+      "observed_at": "2026-11-17T12:55:59.623986+00:00",
+      "implementation": "dist/suno2api.exe session refresh",
+      "executable_sha256": "558011d1323135d9f6bedd87f87facb243389dc804284798d0eebcb4f20e2ab1",
+      "route_origin": "https://auth.suno.com",
+      "endpoint_template": "/v1/client/sessions/{current_session_id}/tokens",
+      "refresh_invocations": 1,
+      "redirects_followed": false,
+      "auth_file_same_session": true,
+      "auth_file_same_user": true,
+      "auth_file_same_issuer": true,
+      "old_expires_at": "2026-11-17T13:03:53+00:00",
+      "auth_exact_client_present": true,
+      "auth_exact_session_present": true,
+      "file_updated": true,
+      "private_backups_created": true,
+      "cli_exit_code": 0,
+      "auth_file_updated": true,
+      "product_status": {
+        "state": "active",
+        "issued_at": "2026-11-17T12:55:59Z",
+        "expires_at": "2026-11-17T13:55:59Z",
+        "refresh_at": "2026-11-17T13:54:59Z",
+        "can_refresh": true,
+        "auth_cookie_file_configured": true,
+        "refresh_count": 1,
+        "last_refresh": "2026-11-17T12:56:00.6041314Z"
+      },
+      "same_session": true,
+      "same_user": true,
+      "same_issuer": true,
+      "expiry_increased": true,
+      "new_expires_at": "2026-11-17T13:55:59+00:00",
+      "device_cookie_preserved": true,
+      "billing_exit_code": 0,
+      "billing_valid_json": true,
+      "billing_has_models": true,
+      "result": "refreshed_persisted_and_billing_verified"
+    }
+  ],
+  "conclusion": "Product CLI normal refresh succeeded after user provided same-session authentication-domain cookies: same session/user/issuer, extended expiry, both files safely updated, original device cookie preserved, subsequent billing read succeeded. Earlier minimal-cookie direct 403 layer unknown and proxy 400 remain separately recorded. Automatic Run schedule validation is pending at this report revision. No challenge solved or extra private credentials searched.",
+  "privacy": "No session identifiers, user identifiers, JWTs, actual Cookie values or actual Set-Cookie values retained."
+}

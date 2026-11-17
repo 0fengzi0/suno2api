@@ -1,0 +1,357 @@
+package gateway
+
+import (
+	"context"
+	"errors"
+	"net"
+	"net/http"
+	"sort"
+	"strings"
+	"time"
+
+	"suno2api/internal/generate"
+)
+
+type generationInput struct {
+	generate.Request
+	AccountID string `json:"account_id,omitempty"`
+}
+
+func (gateway *Gateway) pickAccountLocked(explicit, model string) (string, *runtimeAccount, error) {
+	if gateway.closed {
+		return "", nil, errors.New("gateway is closed")
+	}
+	var selected string
+	var chosen *runtimeAccount
+	ids := make([]string, 0, len(gateway.state.Accounts))
+	for id := range gateway.state.Accounts {
+		ids = append(ids, id)
+	}
+	sort.Strings(ids)
+	for _, id := range ids {
+		if explicit != "" && id != explicit {
+			continue
+		}
+		record := gateway.state.Accounts[id]
+		runtime := gateway.accounts[id]
+		if !record.Enabled || record.DeletedAt != nil || runtime == nil || record.Inflight >= record.MaxConcurrency {
+			continue
+		}
+		if record.Session != nil && record.Session.ExpiresAt.Before(time.Now()) && (!record.Session.CanRefresh || record.Session.ReauthenticationRequired || record.Session.State == "verification_required" || record.Session.State == "refresh_blocked") {
+			continue
+		}
+		if record.State == "configuration_error" || record.Session != nil && record.Session.ExpiresAt.IsZero() {
+			continue
+		}
+		if record.Billing != nil && model != "" {
+			key := model
+			if key == "v6-mini" {
+				key = "chirp-goose"
+			}
+			allowed := false
+			for _, candidate := range record.Billing.Models {
+				if candidate.ExternalKey == key && candidate.CanUse {
+					allowed = true
+				}
+			}
+			if len(record.Billing.Models) > 0 && !allowed {
+				continue
+			}
+		}
+		if chosen == nil || runtime.cursor < chosen.cursor {
+			chosen = runtime
+			selected = id
+		}
+	}
+	if chosen == nil {
+		return "", nil, errors.New("no available account")
+	}
+	chosen.cursor += 1 / float64(gateway.state.Accounts[selected].Weight)
+	chosen.inflight++
+	gateway.state.Accounts[selected].Inflight++
+	return selected, chosen, nil
+}
+
+func (gateway *Gateway) pollJobs(ctx context.Context) {
+	gateway.mu.Lock()
+	ids := []string{}
+	for id, job := range gateway.state.Jobs {
+		if job.State == "submitted" && len(job.ClipIDs) > 0 {
+			ids = append(ids, id)
+		}
+	}
+	sort.Strings(ids)
+	if len(ids) > 20 {
+		start := gateway.pollCursor % len(ids)
+		selected := make([]string, 0, 20)
+		for index := 0; index < 20; index++ {
+			selected = append(selected, ids[(start+index)%len(ids)])
+		}
+		gateway.pollCursor = (start + 20) % len(ids)
+		ids = selected
+	}
+	gateway.mu.Unlock()
+	for _, id := range ids {
+		if ctx.Err() != nil || gateway.ctx.Err() != nil {
+			return
+		}
+		_, _ = gateway.refreshJob(ctx, id)
+	}
+}
+
+func (gateway *Gateway) refreshJob(parent context.Context, id string) (JobView, error) {
+	gateway.mu.Lock()
+	job := gateway.state.Jobs[id]
+	if job == nil {
+		gateway.mu.Unlock()
+		return JobView{}, errors.New("job missing")
+	}
+	snapshot := *job
+	runtime := gateway.accounts[job.AccountID]
+	gateway.mu.Unlock()
+	if runtime == nil || len(snapshot.ClipIDs) == 0 || (snapshot.State != "submitted" && snapshot.State != "submission_unknown") {
+		return snapshot, nil
+	}
+	ctx, cancel := accountContext(parent, runtime, time.Minute)
+	defer cancel()
+	ids := snapshot.RequestedIDs
+	if len(ids) == 0 {
+		ids = snapshot.ClipIDs
+	}
+	clips, err := runtime.client.Get(ctx, ids)
+	if err != nil {
+		return snapshot, err
+	}
+	gateway.mu.Lock()
+	defer gateway.mu.Unlock()
+	current := gateway.state.Jobs[id]
+	if current == nil || gateway.accounts[current.AccountID] != runtime {
+		return snapshot, errors.New("account changed")
+	}
+	current.Clips = projectClips(clips)
+	current.State = jobState(current)
+	current.UpdatedAt = time.Now().UTC()
+	current.Error = ""
+	if err := gateway.persistLocked(); err != nil {
+		return *current, err
+	}
+	return *current, nil
+}
+
+func (gateway *Gateway) releaseAccount(id string, runtime *runtimeAccount) {
+	gateway.mu.Lock()
+	if runtime.inflight > 0 {
+		runtime.inflight--
+	}
+	if account := gateway.state.Accounts[id]; account != nil && account.Inflight > 0 {
+		account.Inflight--
+	}
+	gateway.mu.Unlock()
+}
+func (gateway *Gateway) generateHTTP(writer http.ResponseWriter, request *http.Request) {
+	var input generationInput
+	if !decodeJSON(writer, request, &input) {
+		return
+	}
+	if strings.TrimSpace(input.Prompt) == "" && strings.TrimSpace(input.Lyrics) == "" && !(input.Instrumental && strings.TrimSpace(input.Style) != "") {
+		writeError(writer, 400, "prompt_required", "请填写歌曲描述或歌词")
+		return
+	}
+	if len(input.Prompt)+len(input.Lyrics) > 65536 {
+		writeError(writer, 400, "prompt_too_large", "歌曲文本过长")
+		return
+	}
+	if input.Model == "" {
+		input.Model = gateway.config.DefaultModel
+	}
+	gateway.mu.Lock()
+	id, runtime, err := gateway.pickAccountLocked(input.AccountID, input.Model)
+	if err != nil {
+		gateway.mu.Unlock()
+		writeError(writer, 503, "no_available_account", "没有可用账号，或已达到账号并发上限")
+		return
+	}
+	jobID, err := randomID()
+	if err != nil {
+		runtime.inflight--
+		gateway.state.Accounts[id].Inflight--
+		gateway.mu.Unlock()
+		writeError(writer, 500, "internal_error", "任务创建失败")
+		return
+	}
+	now := time.Now().UTC()
+	job := &JobView{ID: jobID, AccountID: id, RequestedModel: input.Model, State: "submitting", ClipIDs: []string{}, Clips: []ClipView{}, CreatedAt: now, UpdatedAt: now}
+	gateway.state.Jobs[jobID] = job
+	if err := gateway.persistLocked(); err != nil {
+		delete(gateway.state.Jobs, jobID)
+		runtime.inflight--
+		gateway.state.Accounts[id].Inflight--
+		gateway.mu.Unlock()
+		writeError(writer, 500, "storage_error", "任务记录失败，尚未提交")
+		return
+	}
+	snapshot := *job
+	gateway.wait.Add(1)
+	gateway.mu.Unlock()
+	go gateway.submitJob(jobID, runtime, input.Request)
+	writeJSON(writer, http.StatusAccepted, map[string]any{"job": snapshot})
+}
+
+func (gateway *Gateway) submitJob(id string, runtime *runtimeAccount, input generate.Request) {
+	defer gateway.wait.Done()
+	gateway.mu.Lock()
+	accountID := gateway.state.Jobs[id].AccountID
+	gateway.mu.Unlock()
+	defer gateway.releaseAccount(accountID, runtime)
+	ctx, cancel := context.WithTimeout(runtime.ctx, gateway.config.RequestTimeout)
+	defer cancel()
+	response, err := runtime.client.Generate(ctx, input)
+	gateway.mu.Lock()
+	job := gateway.state.Jobs[id]
+	if job == nil {
+		gateway.mu.Unlock()
+		return
+	}
+	job.RequestID = response.ID
+	job.ClipIDs = response.IDs()
+	job.RequestedIDs = response.RequestedIDs()
+	if len(job.RequestedIDs) == 0 && response.RequestedModel == "" {
+		wanted := job.RequestedModel
+		if wanted == "v6-mini" {
+			wanted = "chirp-goose"
+		}
+		for _, clip := range response.Clips {
+			if clip.ModelName == wanted || clip.ModelName == "" {
+				job.RequestedIDs = append(job.RequestedIDs, clip.ID)
+			}
+		}
+	}
+	job.Clips = projectClips(response.Clips)
+	job.UpdatedAt = time.Now().UTC()
+	if err != nil {
+		_, _, message := operationError(err)
+		job.Error = message
+		job.State = "failed"
+		var network net.Error
+		if response.ID != "" || len(response.Clips) > 0 {
+			job.State = "submitted"
+			job.Error = "上游已返回任务，但响应需核查；请查询原任务，不要重提"
+		} else if errors.As(err, &network) || errors.Is(err, context.Canceled) || errors.Is(err, context.DeadlineExceeded) || ambiguousGenerationError(err) {
+			job.State = "submission_unknown"
+			job.Error = "网络中断，提交结果未确认；请在原账号作品中核对，不会自动换号重提"
+		}
+	} else {
+		job.State = jobState(job)
+		if job.State == "submitted" {
+			job.Error = ""
+		}
+	}
+	_ = gateway.persistLocked()
+	gateway.mu.Unlock()
+}
+
+func ambiguousGenerationError(err error) bool {
+	var apiError *generate.APIError
+	return !errors.As(err, &apiError) && !errors.Is(err, generate.ErrAuthentication) && !errors.Is(err, generate.ErrCaptchaRequired) && !errors.Is(err, generate.ErrInsufficientCredits) && !errors.Is(err, generate.ErrRateLimited)
+}
+
+func projectClips(clips []generate.Clip) []ClipView {
+	result := make([]ClipView, 0, len(clips))
+	for _, clip := range clips {
+		result = append(result, ClipView{ID: clip.ID, Title: clip.Title, Status: clip.Status, Model: clip.ModelName, MediaReady: clip.AudioURL != "" || len(clip.MediaURLs) > 0})
+	}
+	return result
+}
+func clipState(clips []ClipView) string {
+	if len(clips) == 0 {
+		return "submitted"
+	}
+	complete := true
+	for _, clip := range clips {
+		if clip.Status == "error" || clip.Status == "failed" {
+			return "failed"
+		}
+		if clip.Status != "complete" || !clip.MediaReady {
+			complete = false
+		}
+	}
+	if complete {
+		return "complete"
+	}
+	return "submitted"
+}
+
+func jobState(job *JobView) string {
+	if len(job.RequestedIDs) == 0 {
+		if job.RequestedModel != "" && len(job.Clips) > 0 {
+			return "no_requested_model"
+		}
+		return clipState(job.Clips)
+	}
+	wanted := map[string]bool{}
+	for _, id := range job.RequestedIDs {
+		wanted[id] = true
+	}
+	var clips []ClipView
+	for _, clip := range job.Clips {
+		if wanted[clip.ID] {
+			clips = append(clips, clip)
+		}
+	}
+	if len(clips) != len(wanted) {
+		return "submitted"
+	}
+	return clipState(clips)
+}
+func (gateway *Gateway) jobViewsLocked() []JobView {
+	views := make([]JobView, 0, len(gateway.state.Jobs))
+	for _, job := range gateway.state.Jobs {
+		views = append(views, *job)
+	}
+	sort.Slice(views, func(i, j int) bool { return views[i].CreatedAt.After(views[j].CreatedAt) })
+	return views
+}
+func (gateway *Gateway) listJobs(writer http.ResponseWriter, request *http.Request) {
+	gateway.mu.Lock()
+	defer gateway.mu.Unlock()
+	writeJSON(writer, 200, map[string]any{"jobs": gateway.jobViewsLocked()})
+}
+func (gateway *Gateway) getJobHTTP(writer http.ResponseWriter, request *http.Request) {
+	id := request.PathValue("id")
+	if id == "list" {
+		gateway.listJobs(writer, request)
+		return
+	}
+	snapshot, err := gateway.refreshJob(request.Context(), id)
+	if snapshot.ID == "" && err != nil {
+		writeError(writer, 404, "not_found", "任务不存在")
+		return
+	}
+	writeJSON(writer, 200, map[string]any{"job": snapshot})
+}
+func (gateway *Gateway) songsHTTP(writer http.ResponseWriter, request *http.Request) {
+	accountID := request.URL.Query().Get("account_id")
+	if accountID == "" {
+		writeError(writer, 400, "account_required", "查询歌曲须指定原account_id")
+		return
+	}
+	ids := strings.Split(request.URL.Query().Get("ids"), ",")
+	if len(ids) == 0 || len(ids) > 20 || ids[0] == "" {
+		writeError(writer, 400, "ids_required", "请提供1至20个歌曲ID")
+		return
+	}
+	runtime, err := gateway.accountForOperation(accountID)
+	if err != nil {
+		writeError(writer, 409, "account_unavailable", "原账号已禁用或不可用")
+		return
+	}
+	ctx, cancel := accountContext(request.Context(), runtime, time.Minute)
+	defer cancel()
+	clips, err := runtime.client.Get(ctx, ids)
+	if err != nil {
+		status, code, message := operationError(err)
+		writeError(writer, status, code, message)
+		return
+	}
+	writeJSON(writer, 200, map[string]any{"account_id": accountID, "clips": projectClips(clips)})
+}

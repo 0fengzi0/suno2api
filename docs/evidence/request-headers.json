@@ -1,0 +1,1149 @@
+{
+  "apk_sha256": "01a454624aa3007a404b8555a4346bbca04f1f3c764645dfaaee22fc3d70e0fd",
+  "observations": [
+    {
+      "id": "main_api_interceptors",
+      "source": "defpackage/w74.java",
+      "sha256": "a3faa4429e5c44fc570c95acea1e677e3d5c42817695ce747fcacb85e32c3fed",
+      "kind": "standalone-jadx-static-observation",
+      "lines": [
+        {
+          "line": 625,
+          "text": "            case 36:"
+        },
+        {
+          "line": 626,
+          "text": "                gm1 gm1Var = new gm1(n84Var.d0());"
+        },
+        {
+          "line": 627,
+          "text": "                SunoAnalyticsIdHeaderInterceptor sunoAnalyticsIdHeaderInterceptor = new SunoAnalyticsIdHeaderInterceptor((hp) n84Var.s.get());"
+        },
+        {
+          "line": 628,
+          "text": "                ApiMetadataHeaderInterceptor apiMetadataHeaderInterceptor = new ApiMetadataHeaderInterceptor();"
+        },
+        {
+          "line": 629,
+          "text": "                SunoAuthHeaderInterceptor sunoAuthHeaderInterceptor = (SunoAuthHeaderInterceptor) n84Var.N.get();"
+        },
+        {
+          "line": 630,
+          "text": "                SessionJwtAuthenticator sessionJwtAuthenticator = (SessionJwtAuthenticator) n84Var.o0.get();"
+        },
+        {
+          "line": 631,
+          "text": "                sc9 sc9Var = (sc9) n84Var.w0.get();"
+        },
+        {
+          "line": 632,
+          "text": "                sc9 sc9Var2 = (sc9) n84Var.x0.get();"
+        },
+        {
+          "line": 633,
+          "text": "                sc9 sc9Var3 = (sc9) n84Var.R.get();"
+        },
+        {
+          "line": 634,
+          "text": "                JsonPrettyPrinterInterceptor jsonPrettyPrinterInterceptor = (JsonPrettyPrinterInterceptor) n84Var.S.get();"
+        },
+        {
+          "line": 635,
+          "text": "                sc9 sc9Var4 = (sc9) n84Var.p0.get();"
+        },
+        {
+          "line": 636,
+          "text": "                sunoAuthHeaderInterceptor.getClass();"
+        },
+        {
+          "line": 637,
+          "text": "                sessionJwtAuthenticator.getClass();"
+        },
+        {
+          "line": 638,
+          "text": "                sc9Var.getClass();"
+        },
+        {
+          "line": 639,
+          "text": "                sc9Var2.getClass();"
+        },
+        {
+          "line": 640,
+          "text": "                sc9Var3.getClass();"
+        },
+        {
+          "line": 641,
+          "text": "                jsonPrettyPrinterInterceptor.getClass();"
+        },
+        {
+          "line": 642,
+          "text": "                sc9Var4.getClass();"
+        },
+        {
+          "line": 643,
+          "text": "                wsc wscVar = new wsc();"
+        },
+        {
+          "line": 644,
+          "text": "                TimeUnit timeUnit = TimeUnit.SECONDS;"
+        },
+        {
+          "line": 645,
+          "text": "                wscVar.b(30L, timeUnit);"
+        },
+        {
+          "line": 646,
+          "text": "                wscVar.d(30L, timeUnit);"
+        },
+        {
+          "line": 647,
+          "text": "                wscVar.z = isk.b(\"timeout\", 30L, timeUnit);"
+        },
+        {
+          "line": 648,
+          "text": "                wscVar.a(60L, timeUnit);"
+        },
+        {
+          "line": 649,
+          "text": "                wscVar.f = true;"
+        },
+        {
+          "line": 650,
+          "text": "                wscVar.g = sessionJwtAuthenticator;"
+        },
+        {
+          "line": 651,
+          "text": "                qdc.a(wscVar);"
+        },
+        {
+          "line": 652,
+          "text": "                ArrayList arrayList = wscVar.c;"
+        },
+        {
+          "line": 653,
+          "text": "                arrayList.add(gm1Var);"
+        },
+        {
+          "line": 654,
+          "text": "                arrayList.add(sunoAnalyticsIdHeaderInterceptor);"
+        },
+        {
+          "line": 655,
+          "text": "                arrayList.add(apiMetadataHeaderInterceptor);"
+        },
+        {
+          "line": 656,
+          "text": "                arrayList.add(sunoAuthHeaderInterceptor);"
+        },
+        {
+          "line": 657,
+          "text": "                arrayList.add(sc9Var);"
+        },
+        {
+          "line": 658,
+          "text": "                arrayList.add(sc9Var2);"
+        },
+        {
+          "line": 659,
+          "text": "                arrayList.add(sc9Var3);"
+        },
+        {
+          "line": 660,
+          "text": "                arrayList.add(jsonPrettyPrinterInterceptor);"
+        },
+        {
+          "line": 1413,
+          "text": "            case 179:"
+        },
+        {
+          "line": 1414,
+          "text": "                GenerateService provideGenerateService = n84Var.c.provideGenerateService((zkg) n84Var.X.get());"
+        },
+        {
+          "line": 1415,
+          "text": "                o7l.a(provideGenerateService);"
+        },
+        {
+          "line": 1416,
+          "text": "                return provideGenerateService;"
+        },
+        {
+          "line": 1417,
+          "text": "            case SensibleDefaults.X_OFFSET /* 180 */:"
+        }
+      ]
+    },
+    {
+      "id": "application_metadata",
+      "source": "defpackage/pd4.java",
+      "sha256": "a97b87cdf893ffc2a3a5890b686b3d45c629ff57ba146dc0c524795a0faacc51",
+      "kind": "standalone-jadx-static-observation",
+      "lines": [
+        {
+          "line": 48,
+          "text": ""
+        },
+        {
+          "line": 49,
+          "text": "    public Map b() {"
+        },
+        {
+          "line": 50,
+          "text": "        Context context = this.f11453a;"
+        },
+        {
+          "line": 51,
+          "text": "        StringBuilder t = kfb.t(qd3.d(context), \"android \", qd3.e(context), \" (\");"
+        },
+        {
+          "line": 52,
+          "text": "        t.append(\")\");"
+        },
+        {
+          "line": 53,
+          "text": "        return y3b.k(new rxd(\"x-suno-client\", t.toString()), new rxd(\"x-suno-region\", Locale.getDefault().getCountry()), new rxd(\"x-suno-timezone\", TimeZone.getDefault().getID()));"
+        },
+        {
+          "line": 54,
+          "text": "    }"
+        }
+      ]
+    },
+    {
+      "id": "metadata_string_builder",
+      "source": "defpackage/kfb.java",
+      "sha256": "e833592d27a1df2aa41a622852cf946db033565d2e5a4e3585361859b9480d65",
+      "kind": "standalone-jadx-static-observation",
+      "lines": [
+        {
+          "line": 124,
+          "text": "    public static StringBuilder t(long j, String str, String str2, String str3) {"
+        },
+        {
+          "line": 125,
+          "text": "        StringBuilder sb = new StringBuilder(str);"
+        },
+        {
+          "line": 126,
+          "text": "        sb.append(str2);"
+        },
+        {
+          "line": 127,
+          "text": "        sb.append(str3);"
+        },
+        {
+          "line": 128,
+          "text": "        sb.append(j);"
+        },
+        {
+          "line": 129,
+          "text": "        return sb;"
+        },
+        {
+          "line": 130,
+          "text": "    }"
+        },
+        {
+          "line": 131,
+          "text": ""
+        }
+      ]
+    },
+    {
+      "id": "version_sources",
+      "source": "defpackage/qd3.java",
+      "sha256": "9345ec756ecdfdd6c0562496507f5058ba1befd746612e40bdc71e1e4403f3f6",
+      "kind": "standalone-jadx-static-observation",
+      "lines": [
+        {
+          "line": 51,
+          "text": "    public static final long d(Context context) {"
+        },
+        {
+          "line": 52,
+          "text": "        long longVersionCode;"
+        },
+        {
+          "line": 53,
+          "text": "        try {"
+        },
+        {
+          "line": 54,
+          "text": "            PackageInfo packageInfo = context.getPackageManager().getPackageInfo(context.getPackageName(), 0);"
+        },
+        {
+          "line": 55,
+          "text": "            packageInfo.getClass();"
+        },
+        {
+          "line": 56,
+          "text": "            if (Build.VERSION.SDK_INT < 28) {"
+        },
+        {
+          "line": 57,
+          "text": "                return packageInfo.versionCode;"
+        },
+        {
+          "line": 58,
+          "text": "            }"
+        },
+        {
+          "line": 59,
+          "text": "            longVersionCode = packageInfo.getLongVersionCode();"
+        },
+        {
+          "line": 60,
+          "text": "            return longVersionCode;"
+        },
+        {
+          "line": 61,
+          "text": "        } catch (PackageManager.NameNotFoundException unused) {"
+        },
+        {
+          "line": 62,
+          "text": "            return 0L;"
+        },
+        {
+          "line": 63,
+          "text": "        }"
+        },
+        {
+          "line": 64,
+          "text": "    }"
+        },
+        {
+          "line": 65,
+          "text": ""
+        },
+        {
+          "line": 66,
+          "text": "    public static final String e(Context context) {"
+        },
+        {
+          "line": 67,
+          "text": "        g4b b;"
+        },
+        {
+          "line": 68,
+          "text": "        context.getClass();"
+        },
+        {
+          "line": 69,
+          "text": "        try {"
+        },
+        {
+          "line": 70,
+          "text": "            PackageInfo packageInfo = context.getPackageManager().getPackageInfo(context.getPackageName(), 0);"
+        },
+        {
+          "line": 71,
+          "text": "            packageInfo.getClass();"
+        },
+        {
+          "line": 72,
+          "text": "            String str = packageInfo.versionName;"
+        },
+        {
+          "line": 73,
+          "text": "            if (str == null) {"
+        },
+        {
+          "line": 74,
+          "text": "                return \"\";"
+        },
+        {
+          "line": 75,
+          "text": "            }"
+        },
+        {
+          "line": 76,
+          "text": "            k4b b2 = d4g.b(f12104a, str);"
+        },
+        {
+          "line": 77,
+          "text": "            if (b2 != null && (b = p6o.b(b2.c, \"versionName\")) != null) {"
+        },
+        {
+          "line": 78,
+          "text": "                String str2 = b.f5768a;"
+        },
+        {
+          "line": 79,
+          "text": "                if (str2 != null) {"
+        },
+        {
+          "line": 80,
+          "text": "                    return str2;"
+        },
+        {
+          "line": 81,
+          "text": "                }"
+        },
+        {
+          "line": 82,
+          "text": "            }"
+        },
+        {
+          "line": 83,
+          "text": "            return str;"
+        },
+        {
+          "line": 84,
+          "text": "        } catch (PackageManager.NameNotFoundException unused) {"
+        },
+        {
+          "line": 85,
+          "text": "            return \"\";"
+        },
+        {
+          "line": 86,
+          "text": "        }"
+        },
+        {
+          "line": 87,
+          "text": "    }"
+        },
+        {
+          "line": 88,
+          "text": ""
+        }
+      ]
+    },
+    {
+      "id": "analytics_header",
+      "source": "com/suno/android/common_networking/remote/interceptors/SunoAnalyticsIdHeaderInterceptor.java",
+      "sha256": "5df3d10947c3aec88661fc778169f6b117e353c44f53246449a1d3717b55a3a8",
+      "kind": "standalone-jadx-static-observation",
+      "lines": [
+        {
+          "line": 16,
+          "text": "public final class SunoAnalyticsIdHeaderInterceptor implements sc9 {"
+        },
+        {
+          "line": 17,
+          "text": "    private final hp analyticsIdManager;"
+        },
+        {
+          "line": 18,
+          "text": "    private final zfi sessionIdStateFlow;"
+        },
+        {
+          "line": 19,
+          "text": ""
+        },
+        {
+          "line": 20,
+          "text": "    public SunoAnalyticsIdHeaderInterceptor(hp hpVar) {"
+        },
+        {
+          "line": 21,
+          "text": "        hpVar.getClass();"
+        },
+        {
+          "line": 22,
+          "text": "        this.analyticsIdManager = hpVar;"
+        },
+        {
+          "line": 23,
+          "text": "        this.sessionIdStateFlow = ((ip) hpVar).c;"
+        },
+        {
+          "line": 24,
+          "text": "    }"
+        },
+        {
+          "line": 25,
+          "text": ""
+        },
+        {
+          "line": 26,
+          "text": "    @Override // defpackage.sc9"
+        },
+        {
+          "line": 27,
+          "text": "    public vjg intercept(oc9 chain) {"
+        },
+        {
+          "line": 28,
+          "text": "        Object value;"
+        },
+        {
+          "line": 29,
+          "text": "        chain.getClass();"
+        },
+        {
+          "line": 30,
+          "text": "        ldg b = chain.request().b();"
+        },
+        {
+          "line": 31,
+          "text": "        b.a(\"anonymous-id\", ((ip) this.analyticsIdManager).f7343a.a());"
+        },
+        {
+          "line": 32,
+          "text": "        String str = (String) this.sessionIdStateFlow.getValue();"
+        },
+        {
+          "line": 33,
+          "text": "        if (str != null) {"
+        },
+        {
+          "line": 34,
+          "text": "            b.a(\"session-id\", str);"
+        },
+        {
+          "line": 35,
+          "text": "        }"
+        },
+        {
+          "line": 36,
+          "text": "        vjg b2 = chain.b(b.b());"
+        },
+        {
+          "line": 37,
+          "text": "        String b3 = b2.f.b(\"session-id\");"
+        },
+        {
+          "line": 38,
+          "text": "        if (b3 == null) {"
+        },
+        {
+          "line": 39,
+          "text": "            b3 = null;"
+        },
+        {
+          "line": 40,
+          "text": "        }"
+        },
+        {
+          "line": 41,
+          "text": "        if (b3 != null) {"
+        },
+        {
+          "line": 42,
+          "text": "            ip ipVar = (ip) this.analyticsIdManager;"
+        },
+        {
+          "line": 43,
+          "text": "            ipVar.getClass();"
+        },
+        {
+          "line": 44,
+          "text": "            bgi bgiVar = ipVar.c;"
+        },
+        {
+          "line": 45,
+          "text": "            do {"
+        },
+        {
+          "line": 46,
+          "text": "                value = bgiVar.getValue();"
+        },
+        {
+          "line": 47,
+          "text": "                if (!Intrinsics.areEqual((String) value, b3)) {"
+        },
+        {
+          "line": 48,
+          "text": "                    ipVar.b.getClass();"
+        },
+        {
+          "line": 49,
+          "text": "                }"
+        }
+      ]
+    },
+    {
+      "id": "installation_id_accessor",
+      "source": "defpackage/q99.java",
+      "sha256": "b1ab3041b68959089760c4cb81f15cfa02dfdd398f7532c3b4aa831c13a4e4aa",
+      "kind": "standalone-jadx-static-observation",
+      "lines": [
+        {
+          "line": 8,
+          "text": "    /* renamed from: a, reason: collision with root package name */"
+        },
+        {
+          "line": 9,
+          "text": "    public final qf4 f12029a;"
+        },
+        {
+          "line": 10,
+          "text": "    public final x1j b;"
+        },
+        {
+          "line": 11,
+          "text": ""
+        },
+        {
+          "line": 12,
+          "text": "    public q99(qf4 qf4Var) {"
+        },
+        {
+          "line": 13,
+          "text": "        qf4Var.getClass();"
+        },
+        {
+          "line": 14,
+          "text": "        this.f12029a = qf4Var;"
+        },
+        {
+          "line": 15,
+          "text": "        this.b = new x1j(new gt3(this, 3));"
+        },
+        {
+          "line": 16,
+          "text": "    }"
+        },
+        {
+          "line": 17,
+          "text": ""
+        },
+        {
+          "line": 18,
+          "text": "    public final String a() {"
+        },
+        {
+          "line": 19,
+          "text": "        return ((Id) this.b.getValue()).m1540unboximpl();"
+        },
+        {
+          "line": 20,
+          "text": "    }"
+        },
+        {
+          "line": 21,
+          "text": "}"
+        }
+      ]
+    },
+    {
+      "id": "id_value_contract",
+      "source": "com/suno/android/common_core_utils/Id.java",
+      "sha256": "6a7b8a3e1e0f59093e7b333fac95e7ac5b26475b33557579951749965116f842",
+      "kind": "standalone-jadx-static-observation",
+      "lines": [
+        {
+          "line": 20,
+          "text": "        return new Id(str);"
+        },
+        {
+          "line": 21,
+          "text": "    }"
+        },
+        {
+          "line": 22,
+          "text": ""
+        },
+        {
+          "line": 23,
+          "text": "    /* renamed from: constructor-impl, reason: not valid java name */"
+        },
+        {
+          "line": 24,
+          "text": "    public static <T> String m1534constructorimpl(String str) {"
+        },
+        {
+          "line": 25,
+          "text": "        str.getClass();"
+        },
+        {
+          "line": 26,
+          "text": "        return str;"
+        },
+        {
+          "line": 27,
+          "text": "    }"
+        },
+        {
+          "line": 28,
+          "text": ""
+        },
+        {
+          "line": 29,
+          "text": "    /* renamed from: equals-impl, reason: not valid java name */"
+        }
+      ]
+    },
+    {
+      "id": "language_json",
+      "source": "com/suno/android/common_networking/remote/interceptors/ApiMetadataHeaderInterceptor.java",
+      "sha256": "d705e6c09824713aed0f3d962d9a463752c5b0765f7546708dd167cb1d202483",
+      "kind": "standalone-jadx-static-observation",
+      "lines": [
+        {
+          "line": 14,
+          "text": "    public vjg intercept(oc9 chain) {"
+        },
+        {
+          "line": 15,
+          "text": "        chain.getClass();"
+        },
+        {
+          "line": 16,
+          "text": "        Locale locale = Locale.getDefault();"
+        },
+        {
+          "line": 17,
+          "text": "        locale.getClass();"
+        },
+        {
+          "line": 18,
+          "text": "        String languageTag = locale.toLanguageTag();"
+        },
+        {
+          "line": 19,
+          "text": "        languageTag.getClass();"
+        },
+        {
+          "line": 20,
+          "text": "        ldg b = chain.request().b();"
+        },
+        {
+          "line": 21,
+          "text": "        b.a(\"Content-Type\", \"application/json\");"
+        },
+        {
+          "line": 22,
+          "text": "        b.a(\"Accept-Language\", languageTag);"
+        },
+        {
+          "line": 23,
+          "text": "        return chain.b(b.b());"
+        },
+        {
+          "line": 24,
+          "text": "    }"
+        }
+      ]
+    },
+    {
+      "id": "conditional_attestation",
+      "source": "defpackage/goe.java",
+      "sha256": "7a5c40b5a592ad22eb4191060897a4de1e083ad09c708b15eb23f10d3859138e",
+      "kind": "standalone-jadx-static-observation",
+      "lines": [
+        {
+          "line": 58,
+          "text": "    /* JADX WARN: Type inference failed for: r3v6 */"
+        },
+        {
+          "line": 59,
+          "text": "    /* JADX WARN: Type inference failed for: r5v0, types: [hkg] */"
+        },
+        {
+          "line": 60,
+          "text": "    @Override // defpackage.sc9"
+        },
+        {
+          "line": 61,
+          "text": "    public final vjg intercept(oc9 oc9Var) {"
+        },
+        {
+          "line": 62,
+          "text": "        udg hkgVar;"
+        },
+        {
+          "line": 63,
+          "text": "        sxf sxfVar = (sxf) oc9Var;"
+        },
+        {
+          "line": 64,
+          "text": "        udg udgVar = sxfVar.e;"
+        },
+        {
+          "line": 65,
+          "text": "        if (!((up4) this.f6114a).n(Feature.PlayIntegrityAttestation.INSTANCE, false)) {"
+        },
+        {
+          "line": 66,
+          "text": "            return sxfVar.b(udgVar);"
+        },
+        {
+          "line": 67,
+          "text": "        }"
+        },
+        {
+          "line": 68,
+          "text": "        String b = udgVar.f14733a.b();"
+        },
+        {
+          "line": 69,
+          "text": "        List list = (List) this.f.getValue();"
+        },
+        {
+          "line": 70,
+          "text": "        if (!(list instanceof Collection) || !list.isEmpty()) {"
+        },
+        {
+          "line": 71,
+          "text": "            Iterator it = list.iterator();"
+        },
+        {
+          "line": 72,
+          "text": "            while (it.hasNext()) {"
+        },
+        {
+          "line": 73,
+          "text": "                if (sli.E(b, (String) it.next(), false)) {"
+        },
+        {
+          "line": 74,
+          "text": "                    tvi tviVar = this.e;"
+        },
+        {
+          "line": 75,
+          "text": "                    tviVar.getClass();"
+        },
+        {
+          "line": 76,
+          "text": "                    udg udgVar2 = null;"
+        },
+        {
+          "line": 77,
+          "text": "                    try {"
+        },
+        {
+          "line": 78,
+          "text": "                        hkgVar = (udg) ldo.f(hp5.f6723a, new h9e(this, udgVar, 0 == true ? 1 : 0, 6));"
+        },
+        {
+          "line": 79,
+          "text": "                    } catch (Throwable th) {"
+        },
+        {
+          "line": 80,
+          "text": "                        hkgVar = new hkg(th);"
+        },
+        {
+          "line": 81,
+          "text": "                    }"
+        },
+        {
+          "line": 82,
+          "text": "                    Throwable a2 = ikg.a(hkgVar);"
+        },
+        {
+          "line": 83,
+          "text": "                    if (a2 == null) {"
+        },
+        {
+          "line": 84,
+          "text": "                        udgVar2 = hkgVar;"
+        },
+        {
+          "line": 85,
+          "text": "                    } else {"
+        },
+        {
+          "line": 86,
+          "text": "                        this.d.d(nm0.UnexpectedError);"
+        },
+        {
+          "line": 87,
+          "text": "                        tviVar.a(a2, new km4(b, 23));"
+        },
+        {
+          "line": 88,
+          "text": "                    }"
+        },
+        {
+          "line": 89,
+          "text": "                    udg udgVar3 = udgVar2;"
+        },
+        {
+          "line": 90,
+          "text": "                    if (udgVar3 != null) {"
+        },
+        {
+          "line": 91,
+          "text": "                        udgVar = udgVar3;"
+        },
+        {
+          "line": 92,
+          "text": "                    }"
+        },
+        {
+          "line": 93,
+          "text": "                    return sxfVar.b(udgVar);"
+        },
+        {
+          "line": 94,
+          "text": "                }"
+        },
+        {
+          "line": 95,
+          "text": "            }"
+        },
+        {
+          "line": 96,
+          "text": "        }"
+        },
+        {
+          "line": 97,
+          "text": "        return sxfVar.b(udgVar);"
+        },
+        {
+          "line": 98,
+          "text": "    }"
+        },
+        {
+          "line": 99,
+          "text": "}"
+        }
+      ]
+    },
+    {
+      "id": "conditional_attestation_paths",
+      "source": "defpackage/oke.java",
+      "sha256": "a64d954ef8970ba5b4a0afb8a35ce2977c5900ca5fb4beae921e2d5da6dad1a0",
+      "kind": "standalone-jadx-static-observation",
+      "lines": [
+        {
+          "line": 65,
+          "text": "                return obj3;"
+        },
+        {
+          "line": 66,
+          "text": "            case 1:"
+        },
+        {
+          "line": 67,
+          "text": "                goe goeVar = (goe) obj2;"
+        },
+        {
+          "line": 68,
+          "text": "                try {"
+        },
+        {
+          "line": 69,
+          "text": "                    Json.Companion companion = Json.INSTANCE;"
+        },
+        {
+          "line": 70,
+          "text": "                    String str2 = ((l96) ((up4) goeVar.f6114a).m(Feature.PlayIntegrityProtectedPaths.INSTANCE, false)).f8906a;"
+        },
+        {
+          "line": 71,
+          "text": "                    companion.getSerializersModule();"
+        },
+        {
+          "line": 72,
+          "text": "                    hkgVar = (List) companion.decodeFromString(new ArrayListSerializer(StringSerializer.INSTANCE), str2);"
+        },
+        {
+          "line": 73,
+          "text": "                } catch (Throwable th) {"
+        },
+        {
+          "line": 74,
+          "text": "                    hkgVar = new hkg(th);"
+        },
+        {
+          "line": 75,
+          "text": "                }"
+        },
+        {
+          "line": 76,
+          "text": "                if (ikg.a(hkgVar) != null) {"
+        },
+        {
+          "line": 77,
+          "text": "                    rm0 rm0Var = goeVar.d;"
+        },
+        {
+          "line": 78,
+          "text": "                    rm0Var.getClass();"
+        },
+        {
+          "line": 79,
+          "text": "                    rm0Var.c(\"token_attestation_disabled\", y3b.k(new rxd(\"build_channel\", \"prod\"), new rxd(\"reason\", \"config_unparseable\")));"
+        },
+        {
+          "line": 80,
+          "text": "                    goeVar.e.getClass();"
+        },
+        {
+          "line": 81,
+          "text": "                    hkgVar = lp5.f9177a;"
+        },
+        {
+          "line": 82,
+          "text": "                }"
+        },
+        {
+          "line": 83,
+          "text": "                return (List) hkgVar;"
+        },
+        {
+          "line": 84,
+          "text": "            case 2:"
+        }
+      ]
+    },
+    {
+      "id": "radar_path_filter",
+      "source": "defpackage/gm1.java",
+      "sha256": "46c086c4e0d0a43dcd5c8c8ff0915702bb24de55bec04074528ac5210b6dd2f1",
+      "kind": "standalone-jadx-static-observation",
+      "lines": [
+        {
+          "line": 276,
+          "text": "            case 2:"
+        },
+        {
+          "line": 277,
+          "text": "                sxf sxfVar3 = (sxf) oc9Var;"
+        },
+        {
+          "line": 278,
+          "text": "                udg udgVar3 = sxfVar3.e;"
+        },
+        {
+          "line": 279,
+          "text": "                if (Intrinsics.areEqual(udgVar3.b, \"POST\")) {"
+        },
+        {
+          "line": 280,
+          "text": "                    String b6 = udgVar3.f14733a.b();"
+        },
+        {
+          "line": 281,
+          "text": "                    if (sli.A(b6, \"/sign_ins\", false) || sli.A(b6, \"/sign_ups\", false) || sli.E(b6, \"/clerk/auth/birthday\", false)) {"
+        },
+        {
+          "line": 282,
+          "text": "                        try {"
+        },
+        {
+          "line": 283,
+          "text": "                            dqi dqiVar = (dqi) ((bvf) this.b);"
+        },
+        {
+          "line": 284,
+          "text": "                            String b7 = ((up4) dqiVar.f4279a).n(Feature.StripeRadarSession.INSTANCE, false) ? dqiVar.b() : null;"
+        },
+        {
+          "line": 285,
+          "text": "                            dqiVar.c();"
+        },
+        {
+          "line": 286,
+          "text": "                            if (b7 == null) {"
+        },
+        {
+          "line": 287,
+          "text": "                                b7 = null;"
+        },
+        {
+          "line": 288,
+          "text": "                            }"
+        },
+        {
+          "line": 289,
+          "text": "                            if (b7 != null && b7.length() != 0) {"
+        },
+        {
+          "line": 290,
+          "text": "                                ldg b8 = udgVar3.b();"
+        },
+        {
+          "line": 291,
+          "text": "                                b8.d(\"X-Stripe-Radar-Session\", b7);"
+        },
+        {
+          "line": 292,
+          "text": "                                udgVar3 = b8.b();"
+        },
+        {
+          "line": 293,
+          "text": "                            }"
+        },
+        {
+          "line": 294,
+          "text": "                        } catch (Exception unused) {"
+        },
+        {
+          "line": 295,
+          "text": "                        }"
+        },
+        {
+          "line": 296,
+          "text": "                    }"
+        },
+        {
+          "line": 297,
+          "text": "                }"
+        },
+        {
+          "line": 298,
+          "text": "                return sxfVar3.b(udgVar3);"
+        },
+        {
+          "line": 299,
+          "text": "            case 3:"
+        },
+        {
+          "line": 429,
+          "text": "            default:"
+        },
+        {
+          "line": 430,
+          "text": "                sxf sxfVar6 = (sxf) oc9Var;"
+        },
+        {
+          "line": 431,
+          "text": "                udg udgVar6 = sxfVar6.e;"
+        },
+        {
+          "line": 432,
+          "text": "                Map b11 = ((pd4) this.b).b();"
+        },
+        {
+          "line": 433,
+          "text": "                ldg b12 = udgVar6.b();"
+        },
+        {
+          "line": 434,
+          "text": "                for (Map.Entry entry2 : b11.entrySet()) {"
+        },
+        {
+          "line": 435,
+          "text": "                    b12.a((String) entry2.getKey(), (String) entry2.getValue());"
+        },
+        {
+          "line": 436,
+          "text": "                }"
+        },
+        {
+          "line": 437,
+          "text": "                return sxfVar6.b(b12.b());"
+        },
+        {
+          "line": 438,
+          "text": "        }"
+        }
+      ]
+    }
+  ],
+  "rea_attestation": {
+    "evidence_id": "ev_950fd71318b8b629c72a83f83f69f09cb9d6ebcbaf7920fa9ae9ea1e48a7c60a",
+    "operation": "inspect_android_method",
+    "source": {
+      "status": "complete",
+      "text": "    /* JADX WARN: Code duplicated, block: B:39:0x00c1  */\r\n    /* JADX WARN: Code duplicated, block: B:41:0x00c7  */\r\n    /* JADX WARN: Code duplicated, block: B:7:0x0013  */\r\n    public final Object a(udg udgVar, ge3 ge3Var) throws Throwable {\r\n        foe foeVar;\r\n        byte[] bArrI;\r\n        String str;\r\n        String str2;\r\n        if (ge3Var instanceof foe) {\r\n            foeVar = (foe) ge3Var;\r\n            int i = foeVar.n;\r\n            if ((i & Integer.MIN_VALUE) != 0) {\r\n                foeVar.n = i - Integer.MIN_VALUE;\r\n            } else {\r\n                foeVar = new foe(this, ge3Var);\r\n            }\r\n        } else {\r\n            foeVar = new foe(this, ge3Var);\r\n        }\r\n        Object objL = foeVar.l;\r\n        hi3 hi3Var = hi3.COROUTINE_SUSPENDED;\r\n        int i2 = foeVar.n;\r\n        rm0 rm0Var = this.d;\r\n        if (i2 == 0) {\r\n            eho.l(objL);\r\n            zdg zdgVar = udgVar.d;\r\n            if (zdgVar != null && zdgVar.isOneShot()) {\r\n                rm0Var.d(nm0.OneShotBody);\r\n                this.e.getClass();\r\n                return null;\r\n            }\r\n            foeVar.j = udgVar;\r\n            foeVar.n = 1;\r\n            objL = this.b.l(foeVar);\r\n            if (objL != hi3Var) {\r\n            }\r\n            return hi3Var;\r\n        }\r\n        if (i2 == 1) {\r\n            udgVar = foeVar.j;\r\n            eho.l(objL);\r\n        } else {\r\n            if (i2 != 2) {\r\n                c3k.i(\"call to 'resume' before 'invoke' with coroutine\");\r\n                return null;\r\n            }\r\n            str = foeVar.k;\r\n            udgVar = foeVar.j;\r\n            eho.l(objL);\r\n        }\r\n        str2 = (String) objL;\r\n        if (str2 == null) {\r\n            rm0Var.d(nm0.TokenFailed);\r\n            return null;\r\n        }\r\n        ldg ldgVarB = udgVar.b();\r\n        ldgVarB.d(\"Suno-AppAttest-Platform\", \"android\");\r\n        ldgVarB.d(\"Suno-AppAttest-Nonce\", str);\r\n        ldgVarB.d(\"Suno-AppAttest-Integrity-Token\", str2);\r\n        return ldgVarB.b();\r\n        String str3 = (String) objL;\r\n        if (str3 == null) {\r\n            rm0Var.d(nm0.NonceFailed);\r\n            return null;\r\n        }\r\n        zdg zdgVar2 = udgVar.d;\r\n        if (zdgVar2 != null) {\r\n            ip1 ip1Var = new ip1();\r\n            zdgVar2.writeTo(ip1Var);\r\n            bArrI = ip1Var.I(ip1Var.b);\r\n        } else {\r\n            bArrI = new byte[0];\r\n        }\r\n        MessageDigest messageDigest = MessageDigest.getInstance(\"SHA-256\");\r\n        byte[] bytes = str3.getBytes(lf2.f9008a);\r\n        bytes.getClass();\r\n        messageDigest.update(bytes);\r\n        messageDigest.update(bArrI);\r\n        String strEncodeToString = Base64.getUrlEncoder().withoutPadding().encodeToString(messageDigest.digest());\r\n        strEncodeToString.getClass();\r\n        foeVar.j = udgVar;\r\n        foeVar.k = str3;\r\n        foeVar.n = 2;\r\n        Object objD = this.c.d(strEncodeToString, foeVar);\r\n        if (objD != hi3Var) {\r\n            objL = objD;\r\n            str = str3;\r\n            str2 = (String) objL;\r\n            if (str2 == null) {\r\n                rm0Var.d(nm0.TokenFailed);\r\n                return null;\r\n            }\r\n            ldg ldgVarB2 = udgVar.b();\r\n            ldgVarB2.d(\"Suno-AppAttest-Platform\", \"android\");\r\n            ldgVarB2.d(\"Suno-AppAttest-Nonce\", str);\r\n            ldgVarB2.d(\"Suno-AppAttest-Integrity-Token\", str2);\r\n            return ldgVarB2.b();\r\n        }\r\n        return hi3Var;\r\n    }",
+      "reported_total_bytes": null
+    },
+    "limitations": [
+      "Static decompiler observations do not establish runtime behavior; the APK is never executed.",
+      "Method signatures use provider display types; exact DEX descriptors and instruction offsets are unavailable. Overload indices are local to this engine and artifact.",
+      "Class inventories use parsed metadata before code generation, including synthetic members that may be omitted from decompiled source. Source positions remain unknown.",
+      "Manifest summary fields are extracted by the upstream engine; decoded XML is retained for verification. APK signatures, split APKs, native libraries and Android runtime capture are not verified by this provider."
+    ]
+  },
+  "limitations": [
+    "Static header registration does not prove server-side enforcement or explain submitted jobs.",
+    "No actual cookies, JWTs, device identifiers, or attestation values are included.",
+    "The mapping between a website suno_device_id Cookie and Android anonymous-id was not established."
+  ]
+}

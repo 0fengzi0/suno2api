@@ -1,0 +1,11 @@
+{
+	"protocol": "web",
+	"model": "v6-mini",
+  "token_file": "session.token",
+	"auto_refresh": true,
+	"refresh_before": "60s",
+  "download_dir": "downloads",
+  "listen": "127.0.0.1:8080",
+  "gateway_listen": "127.0.0.1:8080",
+  "gateway_data_dir": "data/gateway"
+}

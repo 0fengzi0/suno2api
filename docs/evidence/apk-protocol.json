@@ -1,0 +1,1458 @@
+{
+  "apk_sha256": "01a454624aa3007a404b8555a4346bbca04f1f3c764645dfaaee22fc3d70e0fd",
+  "rea": [
+    {
+      "file": "work/rea-android-package.json",
+      "evidence_id": "ev_9f57cad736613adfa41f6e4dd20187681f7705f80e56b721b7edaa5f0c107340",
+      "operation": "inspect_android_package",
+      "subject": {
+        "name": "E:\\project\\suno2api\\work\\com.suno.android.apk",
+        "digest": {
+          "sha256": "01a454624aa3007a404b8555a4346bbca04f1f3c764645dfaaee22fc3d70e0fd"
+        },
+        "format": "apk",
+        "architecture": null,
+        "local_path": "E:\\project\\suno2api\\work\\com.suno.android.apk"
+      },
+      "confidence": "observed",
+      "limitations": [
+        "Static decompiler observations do not establish runtime behavior; the APK is never executed.",
+        "Method signatures use provider display types; exact DEX descriptors and instruction offsets are unavailable. Overload indices are local to this engine and artifact.",
+        "Class inventories use parsed metadata before code generation, including synthetic members that may be omitted from decompiled source. Source positions remain unknown.",
+        "Manifest summary fields are extracted by the upstream engine; decoded XML is retained for verification. APK signatures, split APKs, native libraries and Android runtime capture are not verified by this provider."
+      ]
+    },
+    {
+      "file": "work/rea-auth-method.json",
+      "evidence_id": "ev_89f31f8ad457134ef5c242c5e2b16e2eb12db9a7cc18a8c276ea674be84f1d0e",
+      "operation": "inspect_android_method",
+      "subject": {
+        "name": "E:\\project\\suno2api\\work\\com.suno.android.apk",
+        "digest": {
+          "sha256": "01a454624aa3007a404b8555a4346bbca04f1f3c764645dfaaee22fc3d70e0fd"
+        },
+        "format": "apk",
+        "architecture": null,
+        "local_path": "E:\\project\\suno2api\\work\\com.suno.android.apk"
+      },
+      "confidence": "derived",
+      "limitations": [
+        "Static decompiler observations do not establish runtime behavior; the APK is never executed.",
+        "Method signatures use provider display types; exact DEX descriptors and instruction offsets are unavailable. Overload indices are local to this engine and artifact.",
+        "Class inventories use parsed metadata before code generation, including synthetic members that may be omitted from decompiled source. Source positions remain unknown.",
+        "Manifest summary fields are extracted by the upstream engine; decoded XML is retained for verification. APK signatures, split APKs, native libraries and Android runtime capture are not verified by this provider."
+      ]
+    },
+    {
+      "file": "work/rea-generate-service.json",
+      "evidence_id": "ev_fb3fe622d14f2107c7743f54bf845ddd1acbd8ad101d8b5a0a836185389ed422",
+      "operation": "inspect_android_class",
+      "subject": {
+        "name": "E:\\project\\suno2api\\work\\com.suno.android.apk",
+        "digest": {
+          "sha256": "01a454624aa3007a404b8555a4346bbca04f1f3c764645dfaaee22fc3d70e0fd"
+        },
+        "format": "apk",
+        "architecture": null,
+        "local_path": "E:\\project\\suno2api\\work\\com.suno.android.apk"
+      },
+      "confidence": "observed",
+      "limitations": [
+        "Static decompiler observations do not establish runtime behavior; the APK is never executed.",
+        "Method signatures use provider display types; exact DEX descriptors and instruction offsets are unavailable. Overload indices are local to this engine and artifact.",
+        "Class inventories use parsed metadata before code generation, including synthetic members that may be omitted from decompiled source. Source positions remain unknown.",
+        "Manifest summary fields are extracted by the upstream engine; decoded XML is retained for verification. APK signatures, split APKs, native libraries and Android runtime capture are not verified by this provider."
+      ]
+    },
+    {
+      "file": "work/rea-genparams-references.json",
+      "evidence_id": "ev_571b1025886078a087004a45a4f094326420f11bb97b879eadae5a7a215be237",
+      "operation": "trace_android_references",
+      "subject": {
+        "name": "E:\\project\\suno2api\\work\\com.suno.android.apk",
+        "digest": {
+          "sha256": "01a454624aa3007a404b8555a4346bbca04f1f3c764645dfaaee22fc3d70e0fd"
+        },
+        "format": "apk",
+        "architecture": null,
+        "local_path": "E:\\project\\suno2api\\work\\com.suno.android.apk"
+      },
+      "confidence": "observed",
+      "limitations": [
+        "Static decompiler observations do not establish runtime behavior; the APK is never executed.",
+        "Method signatures use provider display types; exact DEX descriptors and instruction offsets are unavailable. Overload indices are local to this engine and artifact.",
+        "Class inventories use parsed metadata before code generation, including synthetic members that may be omitted from decompiled source. Source positions remain unknown.",
+        "Manifest summary fields are extracted by the upstream engine; decoded XML is retained for verification. APK signatures, split APKs, native libraries and Android runtime capture are not verified by this provider."
+      ]
+    }
+  ],
+  "observations": [
+    {
+      "id": "generation_builder",
+      "evidence_type": "standalone-jadx-simple-static-observation",
+      "source": "work/pv7-simple.java",
+      "source_sha256": "16c09bc908b2e3b7e9aa2e5043655aff6c7add64e6326d286f812e9a4e7544e9",
+      "lines": [
+        {
+          "line": 581,
+          "text": "        if (i4 != 2) goto L68;"
+        },
+        {
+          "line": 582,
+          "text": "        GenMetadataSpec.CreateMode createMode = GenMetadataSpec.CreateMode.Custom;"
+        },
+        {
+          "line": 584,
+          "text": "        GenMetadataSpec.CreateMode createMode2 = createMode;"
+        },
+        {
+          "line": 586,
+          "text": "        GenControlSlidersSpec genControlSlidersSpec2 = genControlSlidersSpec;"
+        },
+        {
+          "line": 587,
+          "text": "        GenMetadataSpec genMetadataSpec = new GenMetadataSpec(str2, genControlSlidersSpec2, remoteVocalGender2, null, createMode2, v4iVar2.G, v4iVar2.H, lastTagsGeneration, 8, null);"
+        },
+        {
+          "line": 589,
+          "text": "        String str7 = v4iVar2.f15193a;"
+        },
+        {
+          "line": 590,
+          "text": "        String str8 = v4iVar2.b;"
+        },
+        {
+          "line": 591,
+          "text": "        String str9 = v4iVar2.c;"
+        },
+        {
+          "line": 592,
+          "text": "        String str10 = v4iVar2.d;"
+        },
+        {
+          "line": 593,
+          "text": "        boolean z = v4iVar2.f;"
+        },
+        {
+          "line": 594,
+          "text": "        rv7 rv7Var = v4iVar2.g;"
+        },
+        {
+          "line": 596,
+          "text": "        int i5 = sv7.f13771a[rv7Var.ordinal()];"
+        },
+        {
+          "line": 597,
+          "text": "        v4iVar3 = null;"
+        },
+        {
+          "line": 598,
+          "text": "        if (i5 == 1) goto L89;"
+        },
+        {
+          "line": 599,
+          "text": "        if (i5 == 2) goto L88;"
+        },
+        {
+          "line": 600,
+          "text": "        if (i5 == 3) goto L87;"
+        },
+        {
+          "line": 601,
+          "text": "        if (i5 != 4) goto L81;"
+        },
+        {
+          "line": 602,
+          "text": "        GenParamsSpec.GenerationType generationType = GenParamsSpec.GenerationType.Video;"
+        },
+        {
+          "line": 604,
+          "text": "        GenParamsSpec.GenerationType generationType2 = generationType;"
+        },
+        {
+          "line": 605,
+          "text": "        String str11 = v4iVar2.i;"
+        },
+        {
+          "line": 606,
+          "text": "        if (str11 != null) goto L93;"
+        },
+        {
+          "line": 607,
+          "text": "        String str12 = null;"
+        },
+        {
+          "line": 609,
+          "text": "        Boolean bool2 = v4iVar2.j;"
+        },
+        {
+          "line": 610,
+          "text": "        boolean z2 = v4iVar2.I;"
+        },
+        {
+          "line": 611,
+          "text": "        String str13 = v4iVar2.k;"
+        },
+        {
+          "line": 612,
+          "text": "        String str14 = v4iVar2.l;"
+        },
+        {
+          "line": 613,
+          "text": "        if (str14 != null) goto L97;"
+        },
+        {
+          "line": 614,
+          "text": "        String str15 = null;"
+        },
+        {
+          "line": 616,
+          "text": "        String str16 = v4iVar2.m;"
+        },
+        {
+          "line": 617,
+          "text": "        if (str16 != null) goto L101;"
+        },
+        {
+          "line": 618,
+          "text": "        String str17 = null;"
+        },
+        {
+          "line": 620,
+          "text": "        Double d5 = v4iVar2.n;"
+        },
+        {
+          "line": 621,
+          "text": "        String str18 = v4iVar2.o;"
+        },
+        {
+          "line": 622,
+          "text": "        String str19 = v4iVar2.e;"
+        },
+        {
+          "line": 623,
+          "text": "        List list = v4iVar2.u;"
+        },
+        {
+          "line": 624,
+          "text": "        if (list == null) goto L108;"
+        },
+        {
+          "line": 625,
+          "text": "        List list2 = list;"
+        },
+        {
+          "line": 626,
+          "text": "        if (list2.isEmpty() == false) goto L107;"
+        },
+        {
+          "line": 627,
+          "text": "        list2 = null;"
+        },
+        {
+          "line": 629,
+          "text": "        List list3 = list2;"
+        },
+        {
+          "line": 630,
+          "text": "        String str20 = str4;"
+        },
+        {
+          "line": 632,
+          "text": "        if (str20 != null) goto L113;"
+        },
+        {
+          "line": 633,
+          "text": "        String str21 = null;"
+        },
+        {
+          "line": 635,
+          "text": "        String str22 = v4iVar2.w;"
+        },
+        {
+          "line": 636,
+          "text": "        if (str22 != null) goto L117;"
+        },
+        {
+          "line": 637,
+          "text": "        String str23 = null;"
+        },
+        {
+          "line": 639,
+          "text": "        List list4 = v4iVar2.x;"
+        },
+        {
+          "line": 640,
+          "text": "        if (list4 == null) goto L130;"
+        },
+        {
+          "line": 641,
+          "text": "        List list5 = list4;"
+        },
+        {
+          "line": 642,
+          "text": "        Boolean bool3 = bool2;"
+        },
+        {
+          "line": 643,
+          "text": "        String str24 = str18;"
+        },
+        {
+          "line": 644,
+          "text": "        ArrayList arrayList2 = new ArrayList(kr2.t(list5, 10));"
+        },
+        {
+          "line": 645,
+          "text": "        Iterator it4 = list5.iterator();"
+        },
+        {
+          "line": 647,
+          "text": "        if (it4.hasNext() == false) goto L128;"
+        },
+        {
+          "line": 648,
+          "text": "        rs0 rs0Var = (rs0) it4.next();"
+        },
+        {
+          "line": 650,
+          "text": "        Iterator it5 = it4;"
+        },
+        {
+          "line": 651,
+          "text": "        String str25 = rs0Var.f13006a;"
+        },
+        {
+          "line": 652,
+          "text": "        Double d6 = d5;"
+        },
+        {
+          "line": 653,
+          "text": "        String str26 = rs0Var.b;"
+        },
+        {
+          "line": 654,
+          "text": "        String str27 = str13;"
+        },
+        {
+          "line": 655,
+          "text": "        String str28 = rs0Var.c;"
+        },
+        {
+          "line": 656,
+          "text": "        nj5 nj5Var = rs0Var.d;"
+        },
+        {
+          "line": 657,
+          "text": "        String str29 = str8;"
+        },
+        {
+          "line": 658,
+          "text": "        String str30 = str9;"
+        },
+        {
+          "line": 659,
+          "text": "        if (nj5Var == null) goto L126;"
+        },
+        {
+          "line": 660,
+          "text": "        Double d7 = Double.valueOf(nj5.v(nj5Var.f10305a, vj5.SECONDS));"
+        },
+        {
+          "line": 663,
+          "text": "        it4 = it5;"
+        },
+        {
+          "line": 664,
+          "text": "        str8 = str29;"
+        },
+        {
+          "line": 665,
+          "text": "        str9 = str30;"
+        },
+        {
+          "line": 666,
+          "text": "        str13 = str27;"
+        },
+        {
+          "line": 667,
+          "text": "        d5 = d6;"
+        },
+        {
+          "line": 670,
+          "text": "        d7 = null;"
+        },
+        {
+          "line": 673,
+          "text": "        ArrayList arrayList3 = arrayList2;"
+        },
+        {
+          "line": 675,
+          "text": "        Double d8 = d5;"
+        },
+        {
+          "line": 676,
+          "text": "        String str31 = str13;"
+        },
+        {
+          "line": 677,
+          "text": "        String str32 = str8;"
+        },
+        {
+          "line": 678,
+          "text": "        String str33 = str9;"
+        },
+        {
+          "line": 679,
+          "text": "        String str34 = v4iVar2.y;"
+        },
+        {
+          "line": 680,
+          "text": "        String str35 = v4iVar2.z;"
+        },
+        {
+          "line": 681,
+          "text": "        String str36 = v4iVar2.A;"
+        },
+        {
+          "line": 682,
+          "text": "        if (str36 != null) goto L134;"
+        },
+        {
+          "line": 683,
+          "text": "        String str37 = null;"
+        },
+        {
+          "line": 685,
+          "text": "        e34 e34Var = v4iVar2.B;"
+        },
+        {
+          "line": 686,
+          "text": "        if (e34Var == null) goto L153;"
+        },
+        {
+          "line": 687,
+          "text": "        int i6 = f34.f5111a[e34Var.ordinal()];"
+        },
+        {
+          "line": 688,
+          "text": "        if (i6 != 1) goto L140;"
+        },
+        {
+          "line": 689,
+          "text": "        GenParamsSpec.CreationSource creationSource = GenParamsSpec.CreationSource.ThemedCreation;"
+        },
+        {
+          "line": 691,
+          "text": "        GenParamsSpec.CreationSource creationSource2 = creationSource;"
+        },
+        {
+          "line": 693,
+          "text": "        String str38 = v4iVar2.C;"
+        },
+        {
+          "line": 694,
+          "text": "        if (str38 != null) goto L157;"
+        },
+        {
+          "line": 695,
+          "text": "        String str39 = null;"
+        },
+        {
+          "line": 697,
+          "text": "        List list6 = v4iVar2.D;"
+        },
+        {
+          "line": 698,
+          "text": "        if (list6 == null) goto L165;"
+        },
+        {
+          "line": 699,
+          "text": "        List list7 = list6;"
+        },
+        {
+          "line": 700,
+          "text": "        ArrayList arrayList4 = new ArrayList(kr2.t(list7, 10));"
+        },
+        {
+          "line": 701,
+          "text": "        Iterator it6 = list7.iterator();"
+        },
+        {
+          "line": 703,
+          "text": "        if (it6.hasNext() == false) goto L164;"
+        },
+        {
+          "line": 707,
+          "text": "        ArrayList arrayList5 = arrayList4;"
+        },
+        {
+          "line": 709,
+          "text": "        String str40 = v4iVar2.E;"
+        },
+        {
+          "line": 710,
+          "text": "        if (str40 != null) goto L169;"
+        },
+        {
+          "line": 711,
+          "text": "        String str41 = null;"
+        },
+        {
+          "line": 713,
+          "text": "        GenParamsSpec genParamsSpec = new GenParamsSpec(str7, str32, str33, str31, str10, str24, null, str19, str21, str23, str15, genMetadataSpec, null, null, null, z, str17, d8, null, null, null, generationType2, null, arrayList5, str41, arrayList3, str34, str35, str37, str, str12, bool3, z2, list3, creationSource2, str39, 6057984, 0, null);"
+        },
+        {
+          "line": 715,
+          "text": "        mv7Var.j = v4iVar2;"
+        },
+        {
+          "line": 716,
+          "text": "        mv7Var.n = 1;"
+        },
+        {
+          "line": 717,
+          "text": "        obj = this.b.generateApiRunGenerationV2(genParamsSpec, mv7Var);"
+        },
+        {
+          "line": 718,
+          "text": "        if (obj != hi3Var) goto L173;"
+        }
+      ],
+      "limitation": "Simple-mode goto reconstruction is not original source; only explicit field/constructor/call dataflow is used."
+    },
+    {
+      "id": "generation_routes",
+      "evidence_type": "standalone-jadx-static-observation",
+      "source": "com/suno/android/common_networking/remote/generate/GenerateService.java",
+      "source_sha256": "d669d85ab02bd351e8d5a958407746ec5f0c8e80594cdcceb02e4a699092e3b9",
+      "lines": [
+        {
+          "line": 41,
+          "text": "    static /* synthetic */ gn6 generateApiGetGenRequests$default(GenerateService generateService, Integer num, String str, List list, String str2, String str3, Boolean bool, Boolean bool2, Boolean bool3, Boolean bool4, Boolean bool5, Integer num2, int i, Object obj) {"
+        },
+        {
+          "line": 42,
+          "text": "        if (obj != null) {"
+        },
+        {
+          "line": 82,
+          "text": "    @htd(\"generate/concat/\")"
+        },
+        {
+          "line": 83,
+          "text": "    gn6<ujg<GenerationRequestSimpleSchema>> generateApiConcatGenerations(@wi1 GenConcatSpec genConcatSpec);"
+        },
+        {
+          "line": 85,
+          "text": "    @htd(\"generate/concat/v2/\")"
+        },
+        {
+          "line": 86,
+          "text": "    gn6<ujg<RemoteClip>> generateApiConcatGenerationsV2(@wi1 GenConcatSpec genConcatSpec);"
+        },
+        {
+          "line": 88,
+          "text": "    @ma7(\"generate/clip/{clip_id}\")"
+        },
+        {
+          "line": 89,
+          "text": "    gn6<ujg<RemoteClip>> generateApiGetClip(@k7e(\"clip_id\") String clipId);"
+        },
+        {
+          "line": 90,
+          "text": ""
+        },
+        {
+          "line": 91,
+          "text": "    @ma7(\"generate/requests/\")"
+        },
+        {
+          "line": 92,
+          "text": "    gn6<ujg<List<GenerationRequestSchema>>> generateApiGetGenRequests(@fqf(\"page\") Integer page, @fqf(\"query\") String query, @fqf(\"categories\") List<String> categories, @fqf(\"ids\") String ids, @fqf(\"status\") String status, @fqf(\"is_liked\") Boolean isLiked, @fqf(\"is_public\") Boolean isPublic, @fqf(\"is_not_disliked\") Boolean isNotDisliked, @fqf(\"add_preset_clips\") Boolean addPresetClips, @fqf(\"is_trashed\") Boolean isTrashed, @fqf(\"from_index\") Integer fromIndex);"
+        },
+        {
+          "line": 93,
+          "text": ""
+        },
+        {
+          "line": 94,
+          "text": "    @ma7(\"generate/get_recommend_styles/\")"
+        },
+        {
+          "line": 95,
+          "text": "    gn6<ujg<RecommendStylesSchema>> generateApiGetRecommendStyles();"
+        },
+        {
+          "line": 96,
+          "text": ""
+        },
+        {
+          "line": 97,
+          "text": "    @htd(\"generate/v2/\")"
+        },
+        {
+          "line": 98,
+          "text": "    Object generateApiRunGenerationV2(@wi1 GenParamsSpec genParamsSpec, ee3<? super Either<? extends CallError, GenerationRequestSchema>> ee3Var);"
+        },
+        {
+          "line": 99,
+          "text": ""
+        },
+        {
+          "line": 100,
+          "text": "    @htd(\"generate/v2/\")"
+        },
+        {
+          "line": 101,
+          "text": "    gn6<ujg<GenerationRequestSchema>> generateApiRunGenerationV2Flow(@wi1 GenParamsSpec genParamsSpec);"
+        },
+        {
+          "line": 103,
+          "text": "    @ma7(\"generate/lyrics/{request_id}\")"
+        },
+        {
+          "line": 104,
+          "text": "    Object getLyricsGeneration(@k7e(\"request_id\") String str, ee3<? super Either<? extends CallError, GenLyricsSchema>> ee3Var);"
+        },
+        {
+          "line": 106,
+          "text": "    @ma7(\"generate/lyrics/{request_id}\")"
+        },
+        {
+          "line": 107,
+          "text": "    gn6<ujg<GenLyricsSchema>> getLyricsGenerationFlow(@k7e(\"request_id\") String requestId);"
+        },
+        {
+          "line": 109,
+          "text": "    @htd(\"generate/campaign/{campaign_id}\")"
+        },
+        {
+          "line": 110,
+          "text": "    Object runCampaignGeneration(@k7e(\"campaign_id\") String str, ee3<? super Either<? extends CallError, GenerationRequestSchema>> ee3Var);"
+        },
+        {
+          "line": 112,
+          "text": "    @htd(\"generate/lyrics/\")"
+        },
+        {
+          "line": 113,
+          "text": "    Object runLyricsGeneration(@wi1 GenLyricsSpec genLyricsSpec, ee3<? super Either<? extends CallError, GenLyricsRequestId>> ee3Var);"
+        },
+        {
+          "line": 114,
+          "text": ""
+        },
+        {
+          "line": 115,
+          "text": "    @htd(\"generate/lyrics/\")"
+        },
+        {
+          "line": 116,
+          "text": "    gn6<ujg<GenLyricsRequestId>> runLyricsGenerationFlow(@wi1 GenLyricsSpec genLyricsSpec);"
+        },
+        {
+          "line": 118,
+          "text": "    @htd(\"generate/upsample/\")"
+        },
+        {
+          "line": 119,
+          "text": "    Object runUpsampleGeneration(@wi1 GenUpsampleSpec genUpsampleSpec, ee3<? super Either<? extends CallError, GenUpsampleSchema>> ee3Var);"
+        },
+        {
+          "line": 121,
+          "text": "    @htd(\"generate/upsample/\")"
+        },
+        {
+          "line": 122,
+          "text": "    gn6<ujg<GenUpsampleSchema>> runUpsampleGenerationFlow(@wi1 GenUpsampleSpec genUpsampleSpec);"
+        },
+        {
+          "line": 124,
+          "text": "    @htd(\"generate/upsample-tags/\")"
+        },
+        {
+          "line": 125,
+          "text": "    Object runUpsampleTagsGeneration(@wi1 GenUpsampleTagsSpec genUpsampleTagsSpec, ee3<? super Either<? extends CallError, GenUpsampleTagsSchema>> ee3Var);"
+        },
+        {
+          "line": 127,
+          "text": "    @htd(\"generate/upsample-tags/\")"
+        },
+        {
+          "line": 128,
+          "text": "    gn6<ujg<GenUpsampleTagsSchema>> runUpsampleTagsGenerationFlow(@wi1 GenUpsampleTagsSpec genUpsampleTagsSpec);"
+        }
+      ]
+    },
+    {
+      "id": "generation_fields",
+      "evidence_type": "standalone-jadx-static-observation",
+      "source": "com/suno/android/common_networking/remote/entities/GenParamsSpec$$serializer.java",
+      "source_sha256": "d9f9e94d78b948880dc864e229b364818061adf151a3894d971d8b52c58714c6",
+      "lines": [
+        {
+          "line": 41,
+          "text": "        pluginGeneratedSerialDescriptor.addElement(\"prompt\", false);"
+        },
+        {
+          "line": 42,
+          "text": "        pluginGeneratedSerialDescriptor.addElement(\"mv\", false);"
+        },
+        {
+          "line": 43,
+          "text": "        pluginGeneratedSerialDescriptor.addElement(\"tags\", true);"
+        },
+        {
+          "line": 44,
+          "text": "        pluginGeneratedSerialDescriptor.addElement(\"negative_tags\", true);"
+        },
+        {
+          "line": 45,
+          "text": "        pluginGeneratedSerialDescriptor.addElement(\"title\", true);"
+        },
+        {
+          "line": 46,
+          "text": "        pluginGeneratedSerialDescriptor.addElement(\"task\", true);"
+        },
+        {
+          "line": 47,
+          "text": "        pluginGeneratedSerialDescriptor.addElement(\"gpt_prompt\", true);"
+        },
+        {
+          "line": 48,
+          "text": "        pluginGeneratedSerialDescriptor.addElement(\"gpt_description_prompt\", true);"
+        },
+        {
+          "line": 49,
+          "text": "        pluginGeneratedSerialDescriptor.addElement(\"persona_id\", true);"
+        },
+        {
+          "line": 50,
+          "text": "        pluginGeneratedSerialDescriptor.addElement(\"artist_clip_id\", true);"
+        },
+        {
+          "line": 51,
+          "text": "        pluginGeneratedSerialDescriptor.addElement(\"cover_clip_id\", true);"
+        },
+        {
+          "line": 52,
+          "text": "        pluginGeneratedSerialDescriptor.addElement(\"metadata\", true);"
+        },
+        {
+          "line": 53,
+          "text": "        pluginGeneratedSerialDescriptor.addElement(\"stream\", true);"
+        },
+        {
+          "line": 54,
+          "text": "        pluginGeneratedSerialDescriptor.addElement(\"is_regenerate\", true);"
+        },
+        {
+          "line": 55,
+          "text": "        pluginGeneratedSerialDescriptor.addElement(\"batch_size\", true);"
+        },
+        {
+          "line": 56,
+          "text": "        pluginGeneratedSerialDescriptor.addElement(\"make_instrumental\", false);"
+        },
+        {
+          "line": 57,
+          "text": "        pluginGeneratedSerialDescriptor.addElement(\"continue_clip_id\", true);"
+        },
+        {
+          "line": 58,
+          "text": "        pluginGeneratedSerialDescriptor.addElement(\"continue_at\", true);"
+        },
+        {
+          "line": 59,
+          "text": "        pluginGeneratedSerialDescriptor.addElement(\"infill_start_s\", true);"
+        },
+        {
+          "line": 60,
+          "text": "        pluginGeneratedSerialDescriptor.addElement(\"infill_end_s\", true);"
+        },
+        {
+          "line": 61,
+          "text": "        pluginGeneratedSerialDescriptor.addElement(\"include_history\", true);"
+        },
+        {
+          "line": 62,
+          "text": "        pluginGeneratedSerialDescriptor.addElement(\"generation_type\", false);"
+        },
+        {
+          "line": 63,
+          "text": "        pluginGeneratedSerialDescriptor.addElement(\"user_uploaded_images_b64\", true);"
+        },
+        {
+          "line": 64,
+          "text": "        pluginGeneratedSerialDescriptor.addElement(\"user_uploaded_image_ids\", true);"
+        },
+        {
+          "line": 65,
+          "text": "        pluginGeneratedSerialDescriptor.addElement(\"user_uploaded_video_id\", true);"
+        },
+        {
+          "line": 66,
+          "text": "        pluginGeneratedSerialDescriptor.addElement(\"audio_refs\", true);"
+        },
+        {
+          "line": 67,
+          "text": "        pluginGeneratedSerialDescriptor.addElement(\"attached_lyrics\", true);"
+        },
+        {
+          "line": 68,
+          "text": "        pluginGeneratedSerialDescriptor.addElement(\"attached_styles\", true);"
+        },
+        {
+          "line": 69,
+          "text": "        pluginGeneratedSerialDescriptor.addElement(\"persona_voice_ref\", true);"
+        },
+        {
+          "line": 70,
+          "text": "        pluginGeneratedSerialDescriptor.addElement(\"token\", true);"
+        },
+        {
+          "line": 71,
+          "text": "        pluginGeneratedSerialDescriptor.addElement(\"project_id\", true);"
+        },
+        {
+          "line": 72,
+          "text": "        pluginGeneratedSerialDescriptor.addElement(\"is_remix\", true);"
+        },
+        {
+          "line": 73,
+          "text": "        pluginGeneratedSerialDescriptor.addElement(\"hybrid_rewrite\", true);"
+        },
+        {
+          "line": 74,
+          "text": "        pluginGeneratedSerialDescriptor.addElement(\"override_fields\", true);"
+        },
+        {
+          "line": 75,
+          "text": "        pluginGeneratedSerialDescriptor.addElement(\"creation_source\", true);"
+        },
+        {
+          "line": 76,
+          "text": "        pluginGeneratedSerialDescriptor.addElement(\"themed_creation_id\", true);"
+        }
+      ]
+    },
+    {
+      "id": "generation_defaults",
+      "evidence_type": "standalone-jadx-static-observation",
+      "source": "com/suno/android/common_networking/remote/entities/GenParamsSpec.java",
+      "source_sha256": "23ce2459f512ad46e66449188bafa7a736cc50f13ee7cfc55958adc8a554d576",
+      "lines": [
+        {
+          "line": 144,
+          "text": "        this.stream = (i & 4096) == 0 ? Boolean.FALSE : bool;"
+        },
+        {
+          "line": 145,
+          "text": "        this.isRegenerate = (i & 8192) == 0 ? Boolean.FALSE : bool2;"
+        },
+        {
+          "line": 146,
+          "text": "        this.batchSize = (i & ReaderJsonLexerKt.BATCH_SIZE) == 0 ? 2 : num;"
+        },
+        {
+          "line": 147,
+          "text": "        this.makeInstrumental = z;"
+        },
+        {
+          "line": 173,
+          "text": "        this.generationType = generationType;"
+        },
+        {
+          "line": 859,
+          "text": "        return Intrinsics.areEqual(this.prompt, genParamsSpec.prompt) && Intrinsics.areEqual(this.modelVersionName, genParamsSpec.modelVersionName) && Intrinsics.areEqual(this.tags, genParamsSpec.tags) && Intrinsics.areEqual(this.negativeTags, genParamsSpec.negativeTags) && Intrinsics.areEqual(this.title, genParamsSpec.title) && Intrinsics.areEqual(this.task, genParamsSpec.task) && Intrinsics.areEqual(this.gptPrompt, genParamsSpec.gptPrompt) && Intrinsics.areEqual(this.gptDescriptionPrompt, genParamsSpec.gptDescriptionPrompt) && Intrinsics.areEqual(this.personaId, genParamsSpec.personaId) && Intrinsics.areEqual(this.artistClipId, genParamsSpec.artistClipId) && Intrinsics.areEqual(this.coverClipId, genParamsSpec.coverClipId) && Intrinsics.areEqual(this.metadata, genParamsSpec.metadata) && Intrinsics.areEqual(this.stream, genParamsSpec.stream) && Intrinsics.areEqual(this.isRegenerate, genParamsSpec.isRegenerate) && Intrinsics.areEqual(this.batchSize, genParamsSpec.batchSize) && this.makeInstrumental == genParamsSpec.makeInstrumental && Intrinsics.areEqual(this.continueClipId, genParamsSpec.continueClipId) && Intrinsics.areEqual((Object) this.continueAt, (Object) genParamsSpec.continueAt) && Intrinsics.areEqual((Object) this.infillStartS, (Object) genParamsSpec.infillStartS) && Intrinsics.areEqual((Object) this.infillEndS, (Object) genParamsSpec.infillEndS) && Intrinsics.areEqual(this.includeHistory, genParamsSpec.includeHistory) && this.generationType == genParamsSpec.generationType && Intrinsics.areEqual(this.userUploadedImagesB64, genParamsSpec.userUploadedImagesB64) && Intrinsics.areEqual(this.userUploadedImageIds, genParamsSpec.userUploadedImageIds) && Intrinsics.areEqual(this.userUploadedVideoId, genParamsSpec.userUploadedVideoId) && Intrinsics.areEqual(this.audioRefs, genParamsSpec.audioRefs) && Intrinsics.areEqual(this.attachedLyrics, genParamsSpec.attachedLyrics) && Intrinsics.areEqual(this.attachedStyles, genParamsSpec.attachedStyles) && Intrinsics.areEqual(this.personaVoiceRef, genParamsSpec.personaVoiceRef) && Intrinsics.areEqual(this.token, genParamsSpec.token) && Intrinsics.areEqual(this.projectId, genParamsSpec.projectId) && Intrinsics.areEqual(this.isRemix, genParamsSpec.isRemix) && this.hybridRewrite == genParamsSpec.hybridRewrite && Intrinsics.areEqual(this.overrideFields, genParamsSpec.overrideFields) && this.creationSource == genParamsSpec.creationSource && Intrinsics.areEqual(this.themedCreationId, genParamsSpec.themedCreationId);"
+        },
+        {
+          "line": 1341,
+          "text": "        this.stream = bool;"
+        },
+        {
+          "line": 1342,
+          "text": "        this.isRegenerate = bool2;"
+        },
+        {
+          "line": 1343,
+          "text": "        this.batchSize = num;"
+        },
+        {
+          "line": 1344,
+          "text": "        this.makeInstrumental = z;"
+        },
+        {
+          "line": 1350,
+          "text": "        this.generationType = generationType;"
+        }
+      ]
+    },
+    {
+      "id": "generation_types",
+      "evidence_type": "standalone-jadx-static-observation",
+      "source": "com/suno/android/common_networking/remote/entities/GenParamsSpec.java",
+      "source_sha256": "23ce2459f512ad46e66449188bafa7a736cc50f13ee7cfc55958adc8a554d576",
+      "lines": [
+        {
+          "line": 1239,
+          "text": "        public static final GenerationType Text = new GenerationType(\"Text\", 0, \"TEXT\");"
+        },
+        {
+          "line": 1242,
+          "text": "        public static final GenerationType Audio = new GenerationType(\"Audio\", 1, \"AUDIO\");"
+        },
+        {
+          "line": 1245,
+          "text": "        public static final GenerationType Image = new GenerationType(\"Image\", 2, \"IMAGE\");"
+        },
+        {
+          "line": 1248,
+          "text": "        public static final GenerationType Video = new GenerationType(\"Video\", 3, \"VIDEO\");"
+        },
+        {
+          "line": 1251,
+          "text": "        public static final GenerationType SimpleRemix = new GenerationType(\"SimpleRemix\", 4, \"SIMPLE_REMIX\");"
+        },
+        {
+          "line": 1271,
+          "text": "            return EnumsKt.createAnnotatedEnumSerializer(\"com.suno.android.common_networking.remote.entities.GenParamsSpec.GenerationType\", values(), new String[]{\"TEXT\", \"AUDIO\", \"IMAGE\", \"VIDEO\", \"SIMPLE_REMIX\"}, new Annotation[][]{null, null, null, null, null}, null);"
+        }
+      ]
+    },
+    {
+      "id": "generation_result",
+      "evidence_type": "standalone-jadx-static-observation",
+      "source": "com/suno/android/common_networking/remote/entities/GenerationRequestSchema$$serializer.java",
+      "source_sha256": "375397c59ddb098db14d0f1b589a2c0405a7aab670b56b9d1356562a77374bd9",
+      "lines": [
+        {
+          "line": 33,
+          "text": "        pluginGeneratedSerialDescriptor.addElement(\"id\", false);"
+        },
+        {
+          "line": 34,
+          "text": "        pluginGeneratedSerialDescriptor.addElement(\"clips\", false);"
+        },
+        {
+          "line": 35,
+          "text": "        pluginGeneratedSerialDescriptor.addElement(\"metadata\", false);"
+        },
+        {
+          "line": 36,
+          "text": "        pluginGeneratedSerialDescriptor.addElement(\"major_model_version\", false);"
+        },
+        {
+          "line": 37,
+          "text": "        pluginGeneratedSerialDescriptor.addElement(\"created_at\", false);"
+        },
+        {
+          "line": 38,
+          "text": "        pluginGeneratedSerialDescriptor.addElement(\"status\", true);"
+        },
+        {
+          "line": 39,
+          "text": "        pluginGeneratedSerialDescriptor.addElement(\"batch_size\", true);"
+        }
+      ]
+    },
+    {
+      "id": "share_routes",
+      "evidence_type": "standalone-jadx-static-observation",
+      "source": "com/suno/android/common_networking/remote/share/ShareLinkService.java",
+      "source_sha256": "f4a3251551615dea43cc107613f58c8be6dab9bf58ac71f81019252d0684f0d9",
+      "lines": [
+        {
+          "line": 31,
+          "text": "    @ma7(\"share/code/{shortcode}\")"
+        },
+        {
+          "line": 32,
+          "text": "    Object unwrapShortcode(@k7e(\"shortcode\") String str, ee3<? super Either<? extends CallError, UnwrappedShortcodeSchema>> ee3Var);"
+        }
+      ]
+    },
+    {
+      "id": "shortcode_fields",
+      "evidence_type": "standalone-jadx-static-observation",
+      "source": "com/suno/android/common_networking/remote/entities/UnwrappedShortcodeSchema$$serializer.java",
+      "source_sha256": "6f3b32b6e3473d26805391c1cac9b349557c1999485319ca937cf5574e0383c4",
+      "lines": [
+        {
+          "line": 28,
+          "text": "        pluginGeneratedSerialDescriptor.addElement(\"success\", false);"
+        },
+        {
+          "line": 29,
+          "text": "        pluginGeneratedSerialDescriptor.addElement(\"content_id\", false);"
+        },
+        {
+          "line": 30,
+          "text": "        pluginGeneratedSerialDescriptor.addElement(\"content_type\", false);"
+        }
+      ]
+    },
+    {
+      "id": "clip_route",
+      "evidence_type": "standalone-jadx-static-observation",
+      "source": "com/suno/android/common_networking/remote/clips/ClipsService.java",
+      "source_sha256": "c1556756d3aac96cf1d1f142f6ab5bc5e6d54af59f0ed3439eae97033edea4ec",
+      "lines": [
+        {
+          "line": 58,
+          "text": "    @ma7(\"clip/{clip_id}/\")"
+        },
+        {
+          "line": 59,
+          "text": "    Object getClipById(@k7e(\"clip_id\") String str, ee3<? super Either<? extends CallError, RemoteClip>> ee3Var);"
+        }
+      ]
+    },
+    {
+      "id": "download_routes",
+      "evidence_type": "standalone-jadx-static-observation",
+      "source": "com/suno/android/common_networking/remote/download/DownloadAuthorizationService.java",
+      "source_sha256": "69bfdace38b5af7096354d0ac9a199c1238a56747c0a2918fa1279c357f612b6",
+      "lines": [
+        {
+          "line": 19,
+          "text": "    @htd(\"download/authorize\")"
+        },
+        {
+          "line": 20,
+          "text": "    Object authorizeDownload(@wi1 RemoteDownloadAuthorizeBody remoteDownloadAuthorizeBody, ee3<? super Either<? extends CallError, RemoteDownloadAuthorizeResponse>> ee3Var);"
+        },
+        {
+          "line": 22,
+          "text": "    @ma7(\"download/clip/{clip_id}\")"
+        },
+        {
+          "line": 23,
+          "text": "    Object getDownloadUrl(@k7e(\"clip_id\") String str, @fqf(\"format\") String str2, ee3<? super Either<? extends CallError, RemoteDownloadUrlResponse>> ee3Var);"
+        }
+      ]
+    },
+    {
+      "id": "download_authorize_fields",
+      "evidence_type": "standalone-jadx-static-observation",
+      "source": "com/suno/android/common_networking/remote/entities/download/RemoteDownloadAuthorizeBody$$serializer.java",
+      "source_sha256": "e021716b996a83b0a57e5cceeb6947e5f23113135b2b2c46e6ef61f996df29ce",
+      "lines": [
+        {
+          "line": 31,
+          "text": "        pluginGeneratedSerialDescriptor.addElement(\"item_id\", false);"
+        },
+        {
+          "line": 32,
+          "text": "        pluginGeneratedSerialDescriptor.addElement(\"item_type\", false);"
+        },
+        {
+          "line": 33,
+          "text": "        pluginGeneratedSerialDescriptor.addElement(\"surface\", true);"
+        }
+      ]
+    },
+    {
+      "id": "download_authorize_result",
+      "evidence_type": "standalone-jadx-static-observation",
+      "source": "com/suno/android/common_networking/remote/entities/download/RemoteDownloadAuthorizeResponse$$serializer.java",
+      "source_sha256": "513952bd15ec57e70d9cee81fc7e48095095c45bbef25c0ca8e88ff88a9c8a94",
+      "lines": [
+        {
+          "line": 31,
+          "text": "        pluginGeneratedSerialDescriptor.addElement(\"ok\", false);"
+        },
+        {
+          "line": 32,
+          "text": "        pluginGeneratedSerialDescriptor.addElement(\"already_unlocked\", false);"
+        },
+        {
+          "line": 33,
+          "text": "        pluginGeneratedSerialDescriptor.addElement(\"credit_deducted\", false);"
+        },
+        {
+          "line": 34,
+          "text": "        pluginGeneratedSerialDescriptor.addElement(\"reason\", true);"
+        }
+      ]
+    },
+    {
+      "id": "download_url_result",
+      "evidence_type": "standalone-jadx-static-observation",
+      "source": "com/suno/android/common_networking/remote/entities/download/RemoteDownloadUrlResponse$$serializer.java",
+      "source_sha256": "0b8aaacb25b5da50431f3633e6209d00afa802f85abeaef0c0f7d04b4347fae6",
+      "lines": [
+        {
+          "line": 32,
+          "text": "        pluginGeneratedSerialDescriptor.addElement(\"ok\", false);"
+        },
+        {
+          "line": 33,
+          "text": "        pluginGeneratedSerialDescriptor.addElement(\"download_url\", true);"
+        },
+        {
+          "line": 34,
+          "text": "        pluginGeneratedSerialDescriptor.addElement(\"status\", true);"
+        },
+        {
+          "line": 35,
+          "text": "        pluginGeneratedSerialDescriptor.addElement(\"reason\", true);"
+        }
+      ]
+    },
+    {
+      "id": "download_item_type",
+      "evidence_type": "standalone-jadx-static-observation",
+      "source": "com/suno/android/common_networking/remote/entities/download/RemoteDownloadItemType.java",
+      "source_sha256": "024649e77d8bef196ddc8fdbfcc9d6b01116159734608796283ef07f81b34106",
+      "lines": [
+        {
+          "line": 29,
+          "text": "    @SerialName(\"clip\")"
+        },
+        {
+          "line": 30,
+          "text": "    public static final RemoteDownloadItemType Clip = new RemoteDownloadItemType(\"Clip\", 0);"
+        },
+        {
+          "line": 32,
+          "text": "    @SerialName(\"midi\")"
+        },
+        {
+          "line": 33,
+          "text": "    public static final RemoteDownloadItemType Midi = new RemoteDownloadItemType(\"Midi\", 1);"
+        },
+        {
+          "line": 35,
+          "text": "    @SerialName(RemoteSequenceClip.MEDIA_TYPE_VIDEO)"
+        },
+        {
+          "line": 36,
+          "text": "    public static final RemoteDownloadItemType Video = new RemoteDownloadItemType(\"Video\", 2);"
+        },
+        {
+          "line": 55,
+          "text": "        return EnumsKt.createAnnotatedEnumSerializer(\"com.suno.android.common_networking.remote.entities.download.RemoteDownloadItemType\", values(), new String[]{\"clip\", \"midi\", RemoteSequenceClip.MEDIA_TYPE_VIDEO}, new Annotation[][]{null, null, null}, null);"
+        },
+        {
+          "line": 56,
+          "text": "    }"
+        }
+      ]
+    },
+    {
+      "id": "download_surface",
+      "evidence_type": "standalone-jadx-static-observation",
+      "source": "com/suno/android/common_networking/remote/entities/download/RemoteDownloadSurface.java",
+      "source_sha256": "37450b239b454a9aff0bd09fcb9918763a5b5d964832daf83f30c9674720d118",
+      "lines": [
+        {
+          "line": 29,
+          "text": "    @SerialName(ContextPlugin.LIBRARY_KEY)"
+        },
+        {
+          "line": 30,
+          "text": "    public static final RemoteDownloadSurface Library = new RemoteDownloadSurface(\"Library\", 0);"
+        },
+        {
+          "line": 32,
+          "text": "    @SerialName(\"share\")"
+        },
+        {
+          "line": 33,
+          "text": "    public static final RemoteDownloadSurface Share = new RemoteDownloadSurface(\"Share\", 1);"
+        },
+        {
+          "line": 52,
+          "text": "        return EnumsKt.createAnnotatedEnumSerializer(\"com.suno.android.common_networking.remote.entities.download.RemoteDownloadSurface\", values(), new String[]{ContextPlugin.LIBRARY_KEY, \"share\"}, new Annotation[][]{null, null}, null);"
+        },
+        {
+          "line": 53,
+          "text": "    }"
+        }
+      ]
+    },
+    {
+      "id": "download_denials",
+      "evidence_type": "standalone-jadx-static-observation",
+      "source": "com/suno/android/common_networking/remote/entities/download/RemoteDownloadDenialReason.java",
+      "source_sha256": "d76afc9226f23ee3b6b0b37b5ba84be493eb8b5efeab33b9e4d91a069647c220",
+      "lines": [
+        {
+          "line": 28,
+          "text": "    @SerialName(\"quota_exhausted\")"
+        },
+        {
+          "line": 29,
+          "text": "    public static final RemoteDownloadDenialReason QuotaExhausted = new RemoteDownloadDenialReason(\"QuotaExhausted\", 0);"
+        },
+        {
+          "line": 31,
+          "text": "    @SerialName(\"no_permission\")"
+        },
+        {
+          "line": 32,
+          "text": "    public static final RemoteDownloadDenialReason NoPermission = new RemoteDownloadDenialReason(\"NoPermission\", 1);"
+        },
+        {
+          "line": 34,
+          "text": "    @SerialName(\"invalid_asset\")"
+        },
+        {
+          "line": 35,
+          "text": "    public static final RemoteDownloadDenialReason InvalidAsset = new RemoteDownloadDenialReason(\"InvalidAsset\", 2);"
+        },
+        {
+          "line": 37,
+          "text": "    @SerialName(\"not_authorized\")"
+        },
+        {
+          "line": 38,
+          "text": "    public static final RemoteDownloadDenialReason NotAuthorized = new RemoteDownloadDenialReason(\"NotAuthorized\", 3);"
+        },
+        {
+          "line": 40,
+          "text": "    @SerialName(\"invalid_format\")"
+        },
+        {
+          "line": 41,
+          "text": "    public static final RemoteDownloadDenialReason InvalidFormat = new RemoteDownloadDenialReason(\"InvalidFormat\", 4);"
+        },
+        {
+          "line": 43,
+          "text": "    @SerialName(\"rate_limited\")"
+        },
+        {
+          "line": 44,
+          "text": "    public static final RemoteDownloadDenialReason RateLimited = new RemoteDownloadDenialReason(\"RateLimited\", 5);"
+        },
+        {
+          "line": 46,
+          "text": "    @SerialName(\"daily_limit_exceeded\")"
+        },
+        {
+          "line": 47,
+          "text": "    public static final RemoteDownloadDenialReason DailyLimitExceeded = new RemoteDownloadDenialReason(\"DailyLimitExceeded\", 6);"
+        },
+        {
+          "line": 49,
+          "text": "    @SerialName(\"internal_error\")"
+        },
+        {
+          "line": 50,
+          "text": "    public static final RemoteDownloadDenialReason InternalError = new RemoteDownloadDenialReason(\"InternalError\", 7);"
+        }
+      ]
+    },
+    {
+      "id": "auth_header",
+      "evidence_type": "standalone-jadx-static-observation",
+      "source": "com/suno/android/common_networking/remote/interceptors/SunoAuthHeaderInterceptor.java",
+      "source_sha256": "4565ff5422f2f24c3470ff354af97d161a2cb621c925e4db4f42376b7dfa5c75",
+      "lines": [
+        {
+          "line": 36,
+          "text": "    public vjg intercept(oc9 chain) {"
+        },
+        {
+          "line": 37,
+          "text": "        chain.getClass();"
+        },
+        {
+          "line": 38,
+          "text": "        String str = (String) this.authTokenHolder.b.getValue();"
+        },
+        {
+          "line": 39,
+          "text": "        ldg b = chain.request().b();"
+        },
+        {
+          "line": 40,
+          "text": "        b.a(\"Authorization\", \"Bearer \" + str);"
+        },
+        {
+          "line": 41,
+          "text": "        b.g(SentSessionJwt.class, new SentSessionJwt(str));"
+        },
+        {
+          "line": 42,
+          "text": "        return chain.b(b.b());"
+        },
+        {
+          "line": 43,
+          "text": "    }"
+        },
+        {
+          "line": 44,
+          "text": "}"
+        }
+      ]
+    },
+    {
+      "id": "metadata_headers",
+      "evidence_type": "standalone-jadx-static-observation",
+      "source": "com/suno/android/common_networking/remote/interceptors/ApiMetadataHeaderInterceptor.java",
+      "source_sha256": "d705e6c09824713aed0f3d962d9a463752c5b0765f7546708dd167cb1d202483",
+      "lines": [
+        {
+          "line": 21,
+          "text": "        b.a(\"Content-Type\", \"application/json\");"
+        },
+        {
+          "line": 22,
+          "text": "        b.a(\"Accept-Language\", languageTag);"
+        }
+      ]
+    },
+    {
+      "id": "analytics_headers",
+      "evidence_type": "standalone-jadx-static-observation",
+      "source": "com/suno/android/common_networking/remote/interceptors/SunoAnalyticsIdHeaderInterceptor.java",
+      "source_sha256": "5df3d10947c3aec88661fc778169f6b117e353c44f53246449a1d3717b55a3a8",
+      "lines": [
+        {
+          "line": 31,
+          "text": "        b.a(\"anonymous-id\", ((ip) this.analyticsIdManager).f7343a.a());"
+        },
+        {
+          "line": 34,
+          "text": "            b.a(\"session-id\", str);"
+        }
+      ]
+    },
+    {
+      "id": "model_endpoint",
+      "evidence_type": "standalone-jadx-static-observation",
+      "source": "com/suno/android/common_networking/remote/billing/BillingService.java",
+      "source_sha256": "01c96f1848e92980fdb56ecb5e03b8f51708436215fae38ba86f6b1cca83a8da",
+      "lines": [
+        {
+          "line": 49,
+          "text": "    @ma7(\"billing/info/\")"
+        },
+        {
+          "line": 50,
+          "text": "    Object getSubscriptionInfo(ee3<? super Either<? extends CallError, SubscriptionInfoResponse>> ee3Var);"
+        }
+      ]
+    },
+    {
+      "id": "model_fields",
+      "evidence_type": "standalone-jadx-static-observation",
+      "source": "com/suno/android/common_networking/remote/session/RemoteModel$$serializer.java",
+      "source_sha256": "78c9fa67da9df177335a4676c554ffa5bfb4b11b6b138aee3c459ed01a115f7a",
+      "lines": [
+        {
+          "line": 35,
+          "text": "        pluginGeneratedSerialDescriptor.addElement(\"can_use\", false);"
+        },
+        {
+          "line": 36,
+          "text": "        pluginGeneratedSerialDescriptor.addElement(\"capabilities\", false);"
+        },
+        {
+          "line": 37,
+          "text": "        pluginGeneratedSerialDescriptor.addElement(\"features\", false);"
+        },
+        {
+          "line": 38,
+          "text": "        pluginGeneratedSerialDescriptor.addElement(\"description\", false);"
+        },
+        {
+          "line": 39,
+          "text": "        pluginGeneratedSerialDescriptor.addElement(\"external_key\", false);"
+        },
+        {
+          "line": 40,
+          "text": "        pluginGeneratedSerialDescriptor.addElement(\"id\", false);"
+        },
+        {
+          "line": 41,
+          "text": "        pluginGeneratedSerialDescriptor.addElement(\"major_version\", false);"
+        },
+        {
+          "line": 42,
+          "text": "        pluginGeneratedSerialDescriptor.addElement(\"max_lengths\", false);"
+        },
+        {
+          "line": 43,
+          "text": "        pluginGeneratedSerialDescriptor.addElement(\"name\", false);"
+        },
+        {
+          "line": 44,
+          "text": "        pluginGeneratedSerialDescriptor.addElement(\"is_default_model\", false);"
+        },
+        {
+          "line": 45,
+          "text": "        pluginGeneratedSerialDescriptor.addElement(\"is_default_free_model\", true);"
+        },
+        {
+          "line": 46,
+          "text": "        pluginGeneratedSerialDescriptor.addElement(\"badges\", false);"
+        },
+        {
+          "line": 47,
+          "text": "        pluginGeneratedSerialDescriptor.addElement(\"style\", true);"
+        }
+      ]
+    },
+    {
+      "id": "clerk_refresh_endpoint",
+      "evidence_type": "standalone-jadx-static-observation",
+      "source": "defpackage/vk2.java",
+      "source_sha256": "6d1b994d26bd151bd96465d12fd3d4be4cbc55bd43ff9e35a61a85c9faefc8be",
+      "lines": [
+        {
+          "line": 45,
+          "text": "    @htd(\"v1/client/sessions/{session_id}/tokens\")"
+        },
+        {
+          "line": 46,
+          "text": "    Object h(@k7e(\"session_id\") String str, @fqf(\"_is_native\") boolean z, @fqf(\"_clerk_js_version\") String str2, ee3<? super Either<? extends CallError, RemotePostSessionTokenResponse>> ee3Var);"
+        }
+      ]
+    },
+    {
+      "id": "protected_playback",
+      "evidence_type": "standalone-jadx-static-observation",
+      "source": "com/suno/android/common_media/drm/player/b.java",
+      "source_sha256": "1651edec308363f7ab7bbe4391241e0d504263e55baac6f25aff7cd39d0ecf37",
+      "lines": [
+        {
+          "line": 115,
+          "text": "        Cipher cipher = Cipher.getInstance(\"AES/CTR/NoPadding\");"
+        }
+      ]
+    },
+    {
+      "id": "protected_license",
+      "evidence_type": "standalone-jadx-static-observation",
+      "source": "com/suno/android/common_media/drm/player/c.java",
+      "source_sha256": "1913b26a0798b4b2f5c6f2cc57fe53fe9e396f4ba32a14d23cf38a401da830b3",
+      "lines": [
+        {
+          "line": 96,
+          "text": "                throw new DrmPlaybackException.KeyUriError(uri2);"
+        },
+        {
+          "line": 122,
+          "text": "                throw new DrmPlaybackException.LicenseError((hd6) ((Either.Left) left).getValue(), 0, crj.a(b));"
+        }
+      ]
+    },
+    {
+      "id": "production_api_base",
+      "evidence_type": "standalone-jadx-static-observation",
+      "source": "defpackage/gmn.java",
+      "source_sha256": "060f287728a92a79bce1cf4dfb9d15690224e4c3b9579d1b30ca05d5787f1c9a",
+      "line": 161,
+      "literal": "https://studio-api-prod.suno.com/api/",
+      "note": "Only task-relevant base URL retained; unrelated configuration values omitted."
+    }
+  ],
+  "limitations": [
+    "Static analysis only; no APK execution or server acceptance implied.",
+    "Standalone JADX export reported 149 method failures; only selected recovered code was reviewed.",
+    "REA search_android_classes inventory validation failed; explicit class/method/reference calls succeeded."
+  ]
+}

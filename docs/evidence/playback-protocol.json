@@ -1,0 +1,1963 @@
+{
+  "apk_sha256": "01a454624aa3007a404b8555a4346bbca04f1f3c764645dfaaee22fc3d70e0fd",
+  "scope": "Normal server-issued playback rights, progressive encoding 1.0.0 only",
+  "observations": [
+    {
+      "id": "license_route",
+      "source": "work/jadx/sources/com/suno/android/common_networking/remote/drm/LicenseService.java",
+      "sha256": "1f1d812d2322f7fb7395268a64758a299d79d1d0c60232c38ee3abfce41da3fe",
+      "evidence_type": "standalone-jadx-static-observation",
+      "lines": [
+        {
+          "line": 10,
+          "text": "/* loaded from: classes4.dex */"
+        },
+        {
+          "line": 11,
+          "text": "public interface LicenseService {"
+        },
+        {
+          "line": 12,
+          "text": "    @htd(\"/api/mango/rights\")"
+        },
+        {
+          "line": 13,
+          "text": "    Object fetchWrappedKey(@wi1 RemoteRightsBody remoteRightsBody, ee3<? super ujg<RemoteRightsResponse>> ee3Var);"
+        },
+        {
+          "line": 14,
+          "text": "}"
+        }
+      ]
+    },
+    {
+      "id": "license_body",
+      "source": "work/jadx/sources/com/suno/android/common_networking/remote/drm/RemoteRightsBody.java",
+      "sha256": "6e8c4e410f8b05438fd3e4980a0c304e0ab4f7294898f4c8be193f1438975a62",
+      "evidence_type": "standalone-jadx-static-observation",
+      "lines": [
+        {
+          "line": 28,
+          "text": "    /* renamed from: Companion, reason: from kotlin metadata */"
+        },
+        {
+          "line": 29,
+          "text": "    public static final Companion INSTANCE = new Companion(null);"
+        },
+        {
+          "line": 30,
+          "text": "    private final ContentParams contentParams;"
+        },
+        {
+          "line": 31,
+          "text": "    private final String version;"
+        },
+        {
+          "line": 32,
+          "text": ""
+        },
+        {
+          "line": 33,
+          "text": "    public /* synthetic */ RemoteRightsBody(int i, ContentParams contentParams, String str, SerializationConstructorMarker serializationConstructorMarker) {"
+        },
+        {
+          "line": 34,
+          "text": "        if (1 != (i & 1)) {"
+        },
+        {
+          "line": 35,
+          "text": "            PluginExceptionsKt.throwMissingFieldException(i, 1, RemoteRightsBody$$serializer.INSTANCE.getDescriptor());"
+        },
+        {
+          "line": 36,
+          "text": "        }"
+        },
+        {
+          "line": 37,
+          "text": "        this.contentParams = contentParams;"
+        },
+        {
+          "line": 38,
+          "text": "        if ((i & 2) == 0) {"
+        },
+        {
+          "line": 39,
+          "text": "            this.version = \"1.0.0\";"
+        },
+        {
+          "line": 40,
+          "text": "        } else {"
+        },
+        {
+          "line": 41,
+          "text": "            this.version = str;"
+        },
+        {
+          "line": 42,
+          "text": "        }"
+        },
+        {
+          "line": 43,
+          "text": "    }"
+        },
+        {
+          "line": 44,
+          "text": ""
+        },
+        {
+          "line": 45,
+          "text": "    @SerialName(\"content_params\")"
+        },
+        {
+          "line": 46,
+          "text": "    public static /* synthetic */ void getContentParams$annotations() {"
+        },
+        {
+          "line": 47,
+          "text": "    }"
+        },
+        {
+          "line": 48,
+          "text": ""
+        },
+        {
+          "line": 49,
+          "text": "    @SerialName(\"version\")"
+        },
+        {
+          "line": 50,
+          "text": "    public static /* synthetic */ void getVersion$annotations() {"
+        },
+        {
+          "line": 51,
+          "text": "    }"
+        },
+        {
+          "line": 52,
+          "text": ""
+        },
+        {
+          "line": 53,
+          "text": "    public static final /* synthetic */ void write$Self$common_networking(RemoteRightsBody self, CompositeEncoder output, SerialDescriptor serialDesc) {"
+        },
+        {
+          "line": 54,
+          "text": "        output.encodeSerializableElement(serialDesc, 0, RemoteRightsBody$ContentParams$$serializer.INSTANCE, self.contentParams);"
+        },
+        {
+          "line": 55,
+          "text": "        if (!output.shouldEncodeElementDefault(serialDesc, 1) && Intrinsics.areEqual(self.version, \"1.0.0\")) {"
+        },
+        {
+          "line": 56,
+          "text": "            return;"
+        },
+        {
+          "line": 57,
+          "text": "        }"
+        },
+        {
+          "line": 58,
+          "text": "        output.encodeStringElement(serialDesc, 1, self.version);"
+        },
+        {
+          "line": 59,
+          "text": "    }"
+        },
+        {
+          "line": 60,
+          "text": ""
+        },
+        {
+          "line": 61,
+          "text": "    public final ContentParams getContentParams() {"
+        },
+        {
+          "line": 62,
+          "text": "        return this.contentParams;"
+        },
+        {
+          "line": 63,
+          "text": "    }"
+        },
+        {
+          "line": 64,
+          "text": ""
+        },
+        {
+          "line": 82,
+          "text": "        public static final class ContentType extends Enum<ContentType> {"
+        },
+        {
+          "line": 83,
+          "text": "            private static final /* synthetic */ jt5 $ENTRIES;"
+        },
+        {
+          "line": 84,
+          "text": "            private static final /* synthetic */ ContentType[] $VALUES;"
+        },
+        {
+          "line": 85,
+          "text": ""
+        },
+        {
+          "line": 86,
+          "text": "            @SerialName(\"clip\")"
+        },
+        {
+          "line": 87,
+          "text": "            public static final ContentType Clip = new ContentType(\"Clip\", 0);"
+        },
+        {
+          "line": 88,
+          "text": ""
+        },
+        {
+          "line": 89,
+          "text": "            @SerialName(\"hook\")"
+        },
+        {
+          "line": 90,
+          "text": "            public static final ContentType Hook = new ContentType(\"Hook\", 1);"
+        },
+        {
+          "line": 91,
+          "text": ""
+        },
+        {
+          "line": 92,
+          "text": "            @SerialName(\"visual_asset\")"
+        },
+        {
+          "line": 93,
+          "text": "            public static final ContentType VisualAsset = new ContentType(\"VisualAsset\", 2);"
+        },
+        {
+          "line": 94,
+          "text": ""
+        },
+        {
+          "line": 95,
+          "text": "            private static final /* synthetic */ ContentType[] $values() {"
+        },
+        {
+          "line": 96,
+          "text": "                return new ContentType[]{Clip, Hook, VisualAsset};"
+        },
+        {
+          "line": 97,
+          "text": "            }"
+        },
+        {
+          "line": 98,
+          "text": ""
+        },
+        {
+          "line": 99,
+          "text": "            static {"
+        },
+        {
+          "line": 100,
+          "text": "                ContentType[] $values = $values();"
+        },
+        {
+          "line": 121,
+          "text": ""
+        },
+        {
+          "line": 122,
+          "text": "        public /* synthetic */ ContentParams(int i, String str, ContentType contentType, SerializationConstructorMarker serializationConstructorMarker) {"
+        },
+        {
+          "line": 123,
+          "text": "            if (3 != (i & 3)) {"
+        },
+        {
+          "line": 124,
+          "text": "                PluginExceptionsKt.throwMissingFieldException(i, 3, RemoteRightsBody$ContentParams$$serializer.INSTANCE.getDescriptor());"
+        },
+        {
+          "line": 125,
+          "text": "            }"
+        },
+        {
+          "line": 126,
+          "text": "            this.contentId = str;"
+        },
+        {
+          "line": 127,
+          "text": "            this.contentType = contentType;"
+        },
+        {
+          "line": 128,
+          "text": "        }"
+        },
+        {
+          "line": 129,
+          "text": ""
+        },
+        {
+          "line": 130,
+          "text": "        public static final /* synthetic */ KSerializer _childSerializers$_anonymous_() {"
+        },
+        {
+          "line": 131,
+          "text": "            return EnumsKt.createAnnotatedEnumSerializer(\"com.suno.android.common_networking.remote.drm.RemoteRightsBody.ContentParams.ContentType\", ContentType.values(), new String[]{\"clip\", \"hook\", \"visual_asset\"}, new Annotation[][]{null, null, null}, null);"
+        },
+        {
+          "line": 132,
+          "text": "        }"
+        },
+        {
+          "line": 133,
+          "text": ""
+        },
+        {
+          "line": 134,
+          "text": "        @SerialName(\"content_id\")"
+        },
+        {
+          "line": 135,
+          "text": "        public static /* synthetic */ void getContentId$annotations() {"
+        },
+        {
+          "line": 136,
+          "text": "        }"
+        },
+        {
+          "line": 137,
+          "text": ""
+        },
+        {
+          "line": 138,
+          "text": "        @SerialName(\"content_type\")"
+        },
+        {
+          "line": 139,
+          "text": "        public static /* synthetic */ void getContentType$annotations() {"
+        },
+        {
+          "line": 140,
+          "text": "        }"
+        },
+        {
+          "line": 141,
+          "text": ""
+        },
+        {
+          "line": 142,
+          "text": "        public static final /* synthetic */ void write$Self$common_networking(ContentParams self, CompositeEncoder output, SerialDescriptor serialDesc) {"
+        },
+        {
+          "line": 143,
+          "text": "            ft9[] ft9VarArr = $childSerializers;"
+        },
+        {
+          "line": 144,
+          "text": "            output.encodeStringElement(serialDesc, 0, self.contentId);"
+        },
+        {
+          "line": 145,
+          "text": "            output.encodeSerializableElement(serialDesc, 1, (SerializationStrategy) ft9VarArr[1].getValue(), self.contentType);"
+        },
+        {
+          "line": 146,
+          "text": "        }"
+        },
+        {
+          "line": 147,
+          "text": ""
+        },
+        {
+          "line": 148,
+          "text": "        public final String getContentId() {"
+        },
+        {
+          "line": 149,
+          "text": "            return this.contentId;"
+        },
+        {
+          "line": 150,
+          "text": "        }"
+        },
+        {
+          "line": 151,
+          "text": ""
+        },
+        {
+          "line": 152,
+          "text": "        public final ContentType getContentType() {"
+        }
+      ]
+    },
+    {
+      "id": "license_response",
+      "source": "work/jadx/sources/com/suno/android/common_networking/remote/drm/RemoteRightsResponse.java",
+      "sha256": "9b6684a9bbcac862d3e23c7456cf55fdbfdd242ce8ac714c3863cf9bfbbb3081",
+      "evidence_type": "standalone-jadx-static-observation",
+      "lines": [
+        {
+          "line": 18,
+          "text": "    /* renamed from: Companion, reason: from kotlin metadata */"
+        },
+        {
+          "line": 19,
+          "text": "    public static final Companion INSTANCE = new Companion(null);"
+        },
+        {
+          "line": 20,
+          "text": "    private final String iv;"
+        },
+        {
+          "line": 21,
+          "text": "    private final String key;"
+        },
+        {
+          "line": 22,
+          "text": ""
+        },
+        {
+          "line": 23,
+          "text": "    public /* synthetic */ RemoteRightsResponse(int i, String str, String str2, SerializationConstructorMarker serializationConstructorMarker) {"
+        },
+        {
+          "line": 24,
+          "text": "        if ((i & 1) == 0) {"
+        },
+        {
+          "line": 25,
+          "text": "            this.key = null;"
+        },
+        {
+          "line": 26,
+          "text": "        } else {"
+        },
+        {
+          "line": 27,
+          "text": "            this.key = str;"
+        },
+        {
+          "line": 28,
+          "text": "        }"
+        },
+        {
+          "line": 29,
+          "text": "        if ((i & 2) == 0) {"
+        },
+        {
+          "line": 30,
+          "text": "            this.iv = null;"
+        },
+        {
+          "line": 31,
+          "text": "        } else {"
+        },
+        {
+          "line": 32,
+          "text": "            this.iv = str2;"
+        },
+        {
+          "line": 33,
+          "text": "        }"
+        },
+        {
+          "line": 34,
+          "text": "    }"
+        },
+        {
+          "line": 35,
+          "text": ""
+        },
+        {
+          "line": 36,
+          "text": "    @SerialName(\"iv\")"
+        },
+        {
+          "line": 37,
+          "text": "    public static /* synthetic */ void getIv$annotations() {"
+        },
+        {
+          "line": 38,
+          "text": "    }"
+        },
+        {
+          "line": 39,
+          "text": ""
+        },
+        {
+          "line": 40,
+          "text": "    @SerialName(\"key\")"
+        },
+        {
+          "line": 41,
+          "text": "    public static /* synthetic */ void getKey$annotations() {"
+        },
+        {
+          "line": 42,
+          "text": "    }"
+        },
+        {
+          "line": 43,
+          "text": ""
+        },
+        {
+          "line": 44,
+          "text": "    public static final /* synthetic */ void write$Self$common_networking(RemoteRightsResponse self, CompositeEncoder output, SerialDescriptor serialDesc) {"
+        },
+        {
+          "line": 45,
+          "text": "        if (output.shouldEncodeElementDefault(serialDesc, 0) || self.key != null) {"
+        },
+        {
+          "line": 46,
+          "text": "            output.encodeNullableSerializableElement(serialDesc, 0, StringSerializer.INSTANCE, self.key);"
+        },
+        {
+          "line": 47,
+          "text": "        }"
+        },
+        {
+          "line": 48,
+          "text": "        if (!output.shouldEncodeElementDefault(serialDesc, 1) && self.iv == null) {"
+        },
+        {
+          "line": 49,
+          "text": "            return;"
+        },
+        {
+          "line": 50,
+          "text": "        }"
+        },
+        {
+          "line": 51,
+          "text": "        output.encodeNullableSerializableElement(serialDesc, 1, StringSerializer.INSTANCE, self.iv);"
+        },
+        {
+          "line": 52,
+          "text": "    }"
+        },
+        {
+          "line": 53,
+          "text": ""
+        },
+        {
+          "line": 54,
+          "text": "    public final String getIv() {"
+        },
+        {
+          "line": 55,
+          "text": "        return this.iv;"
+        },
+        {
+          "line": 56,
+          "text": "    }"
+        },
+        {
+          "line": 57,
+          "text": ""
+        },
+        {
+          "line": 58,
+          "text": "    public final String getKey() {"
+        },
+        {
+          "line": 59,
+          "text": "        return this.key;"
+        },
+        {
+          "line": 60,
+          "text": "    }"
+        },
+        {
+          "line": 61,
+          "text": ""
+        },
+        {
+          "line": 63,
+          "text": "    /* loaded from: classes5.dex */"
+        },
+        {
+          "line": 64,
+          "text": "    public static final class Companion {"
+        },
+        {
+          "line": 65,
+          "text": "        public /* synthetic */ Companion(DefaultConstructorMarker defaultConstructorMarker) {"
+        },
+        {
+          "line": 66,
+          "text": "            this();"
+        },
+        {
+          "line": 67,
+          "text": "        }"
+        },
+        {
+          "line": 68,
+          "text": ""
+        },
+        {
+          "line": 69,
+          "text": "        public final KSerializer<RemoteRightsResponse> serializer() {"
+        },
+        {
+          "line": 70,
+          "text": "            return RemoteRightsResponse$$serializer.INSTANCE;"
+        },
+        {
+          "line": 71,
+          "text": "        }"
+        },
+        {
+          "line": 72,
+          "text": ""
+        },
+        {
+          "line": 73,
+          "text": "        private Companion() {"
+        },
+        {
+          "line": 74,
+          "text": "        }"
+        },
+        {
+          "line": 75,
+          "text": "    }"
+        }
+      ]
+    },
+    {
+      "id": "license_fetch_unwrap",
+      "source": "work/license-repo-simple.java",
+      "sha256": "820658a0d5fbdfbad3b41d251f118f83b2821a3a84dbe9bdb9d869a56403c453",
+      "evidence_type": "standalone-jadx-static-observation",
+      "lines": [
+        {
+          "line": 85,
+          "text": "        ujg ujgVar = (ujg) obj;     // Catch: Throwable -> L14 Exception -> L16 IOException -> L18"
+        },
+        {
+          "line": 86,
+          "text": "        vjg vjgVar = ujgVar.f14836a;     // Catch: Throwable -> L14 RaiseCancellationException -> L51"
+        },
+        {
+          "line": 87,
+          "text": "        if (vjgVar.a() == true) goto L55;"
+        },
+        {
+          "line": 88,
+          "text": "        int i3 = vjgVar.d;     // Catch: Throwable -> L14 RaiseCancellationException -> L51"
+        },
+        {
+          "line": 89,
+          "text": "        String str4 = vjgVar.c;     // Catch: Throwable -> L14 RaiseCancellationException -> L51"
+        },
+        {
+          "line": 90,
+          "text": "        str4.getClass();     // Catch: Throwable -> L14 RaiseCancellationException -> L51"
+        },
+        {
+          "line": 91,
+          "text": "        xjg xjgVar = ujgVar.c;     // Catch: Throwable -> L14 RaiseCancellationException -> L51"
+        },
+        {
+          "line": 92,
+          "text": "        if (xjgVar == null) goto L53;"
+        },
+        {
+          "line": 93,
+          "text": "        str2 = xjgVar.h();     // Catch: Throwable -> L14 RaiseCancellationException -> L51"
+        },
+        {
+          "line": 94,
+          "text": "    L53:"
+        },
+        {
+          "line": 95,
+          "text": "        defaultRaise.raise(new fd6(new HttpError(i3, str4, String.valueOf(str2))));     // Catch: Throwable -> L14 RaiseCancellationException -> L51"
+        },
+        {
+          "line": 96,
+          "text": "        throw new RuntimeException();     // Catch: Throwable -> L14 RaiseCancellationException -> L51"
+        },
+        {
+          "line": 97,
+          "text": "    L55:"
+        },
+        {
+          "line": 98,
+          "text": "        DefaultRaise defaultRaise3 = new DefaultRaise(false);     // Catch: Throwable -> L14 RaiseCancellationException -> L51"
+        },
+        {
+          "line": 99,
+          "text": "        udg udgVar = vjgVar.f15466a;     // Catch: Throwable -> L69 RaiseCancellationException -> L71"
+        },
+        {
+          "line": 100,
+          "text": "        udgVar.getClass();     // Catch: Throwable -> L69 RaiseCancellationException -> L71"
+        },
+        {
+          "line": 101,
+          "text": "        String b = udgVar.c.b(\"Authorization\");     // Catch: Throwable -> L69 RaiseCancellationException -> L71"
+        },
+        {
+          "line": 102,
+          "text": "        if (b == null) goto L84;"
+        },
+        {
+          "line": 103,
+          "text": "        String Y = sli.Y(b, \"Bearer \");     // Catch: Throwable -> L69 RaiseCancellationException -> L71"
+        },
+        {
+          "line": 104,
+          "text": "        if (Y.length() <= 0) goto L83;"
+        },
+        {
+          "line": 105,
+          "text": "        MessageDigest messageDigest = MessageDigest.getInstance(\"SHA-256\");     // Catch: Throwable -> L69 RaiseCancellationException -> L71"
+        },
+        {
+          "line": 106,
+          "text": "        byte[] bytes = Y.getBytes(lf2.f9007a);     // Catch: Throwable -> L69 RaiseCancellationException -> L71"
+        },
+        {
+          "line": 107,
+          "text": "        bytes.getClass();     // Catch: Throwable -> L69 RaiseCancellationException -> L71"
+        },
+        {
+          "line": 108,
+          "text": "        byte[] digest = messageDigest.digest(bytes);     // Catch: Throwable -> L69 RaiseCancellationException -> L71"
+        },
+        {
+          "line": 109,
+          "text": "        RemoteRightsResponse remoteRightsResponse = (RemoteRightsResponse) ujgVar.b;     // Catch: Throwable -> L69 RaiseCancellationException -> L71"
+        },
+        {
+          "line": 110,
+          "text": "        if (remoteRightsResponse == null) goto L80;"
+        },
+        {
+          "line": 111,
+          "text": "        String key = remoteRightsResponse.getKey();     // Catch: Throwable -> L69 RaiseCancellationException -> L71"
+        },
+        {
+          "line": 112,
+          "text": "        if (key == null) goto L78;"
+        },
+        {
+          "line": 113,
+          "text": "        String iv = remoteRightsResponse.getIv();     // Catch: Throwable -> L69 RaiseCancellationException -> L71"
+        },
+        {
+          "line": 114,
+          "text": "        if (iv == null) goto L76;"
+        },
+        {
+          "line": 115,
+          "text": "        byte[] decode = Base64.decode(key, 0);     // Catch: Throwable -> L69 RaiseCancellationException -> L71"
+        },
+        {
+          "line": 116,
+          "text": "        byte[] decode2 = Base64.decode(iv, 0);     // Catch: Throwable -> L69 RaiseCancellationException -> L71"
+        },
+        {
+          "line": 117,
+          "text": "        tviVar.getClass();     // Catch: Throwable -> L73"
+        },
+        {
+          "line": 118,
+          "text": "        decode.getClass();     // Catch: Throwable -> L73"
+        },
+        {
+          "line": 119,
+          "text": "        digest.getClass();     // Catch: Throwable -> L73"
+        },
+        {
+          "line": 120,
+          "text": "        byte[] A = jb3.A(decode, str3, digest);     // Catch: Throwable -> L73"
+        },
+        {
+          "line": 121,
+          "text": "        decode2.getClass();     // Catch: Throwable -> L73"
+        },
+        {
+          "line": 122,
+          "text": "        xo9 xo9Var = new xo9(A, jb3.A(decode2, str3, digest));     // Catch: Throwable -> L73"
+        },
+        {
+          "line": 123,
+          "text": "        Arrays.fill(digest, 0, digest.length, (byte) 0);     // Catch: Throwable -> L69 RaiseCancellationException -> L71"
+        },
+        {
+          "line": 124,
+          "text": "        Arrays.fill(decode, 0, decode.length, (byte) 0);     // Catch: Throwable -> L69 RaiseCancellationException -> L71"
+        },
+        {
+          "line": 125,
+          "text": "        Arrays.fill(decode2, 0, decode2.length, (byte) 0);     // Catch: Throwable -> L69 RaiseCancellationException -> L71"
+        },
+        {
+          "line": 126,
+          "text": "        defaultRaise3.complete();     // Catch: Throwable -> L69 RaiseCancellationException -> L71"
+        },
+        {
+          "line": 185,
+          "text": "    L20:"
+        },
+        {
+          "line": 186,
+          "text": "        c3k.i(\"call to 'resume' before 'invoke' with coroutine\");"
+        },
+        {
+          "line": 187,
+          "text": "        return null;"
+        },
+        {
+          "line": 188,
+          "text": "    L22:"
+        },
+        {
+          "line": 189,
+          "text": "        DefaultRaise defaultRaise4 = kfb.g(obj, false);"
+        },
+        {
+          "line": 190,
+          "text": "        int i4 = ii5.f7222a[oh5Var.ordinal()];     // Catch: Throwable -> L33 RaiseCancellationException -> L35"
+        },
+        {
+          "line": 191,
+          "text": "        int i5 = 2;"
+        },
+        {
+          "line": 192,
+          "text": "        if (i4 == 1) goto L39;"
+        },
+        {
+          "line": 193,
+          "text": "        if (i4 != 2) goto L27;"
+        },
+        {
+          "line": 194,
+          "text": "        RemoteRightsBody.ContentParams.ContentType contentType = RemoteRightsBody.ContentParams.ContentType.Clip;     // Catch: Throwable -> L33 RaiseCancellationException -> L35"
+        },
+        {
+          "line": 195,
+          "text": "    L40:"
+        },
+        {
+          "line": 196,
+          "text": "        RemoteRightsBody remoteRightsBody = new RemoteRightsBody(new RemoteRightsBody.ContentParams(str, contentType), z2 ? 1 : 0, i5, z ? 1 : 0);     // Catch: Throwable -> L33 RaiseCancellationException -> L35"
+        },
+        {
+          "line": 197,
+          "text": "        LicenseService licenseService = this.f9057a;     // Catch: Throwable -> L33 Exception -> L98 IOException -> L100"
+        },
+        {
+          "line": 198,
+          "text": "        ji5Var.j = str;     // Catch: Throwable -> L33 Exception -> L98 IOException -> L100"
+        },
+        {
+          "line": 199,
+          "text": "        ji5Var.k = defaultRaise4;     // Catch: Throwable -> L33 Exception -> L98 IOException -> L100"
+        },
+        {
+          "line": 200,
+          "text": "        ji5Var.l = defaultRaise4;     // Catch: Throwable -> L33 Exception -> L98 IOException -> L100"
+        },
+        {
+          "line": 201,
+          "text": "        ji5Var.o = 1;     // Catch: Throwable -> L33 Exception -> L98 IOException -> L100"
+        },
+        {
+          "line": 202,
+          "text": "        Object fetchWrappedKey = licenseService.fetchWrappedKey(remoteRightsBody, ji5Var);     // Catch: Throwable -> L33 Exception -> L98 IOException -> L100"
+        },
+        {
+          "line": 203,
+          "text": "        if (fetchWrappedKey != hi3Var) goto L44;"
+        },
+        {
+          "line": 204,
+          "text": "        return hi3Var;"
+        },
+        {
+          "line": 205,
+          "text": "    L44:"
+        },
+        {
+          "line": 206,
+          "text": "        str3 = str;"
+        },
+        {
+          "line": 207,
+          "text": "        defaultRaise2 = defaultRaise4;"
+        },
+        {
+          "line": 208,
+          "text": "        obj = fetchWrappedKey;"
+        },
+        {
+          "line": 209,
+          "text": "        defaultRaise = defaultRaise2;"
+        }
+      ]
+    },
+    {
+      "id": "wrapped_aes_gcm",
+      "source": "work/jadx/sources/defpackage/jb3.java",
+      "sha256": "54319a26d5ee8b9dcffec4bfaa0f7b7e469b0fa09c9fda92f29e90cf5f461a56",
+      "evidence_type": "standalone-jadx-static-observation",
+      "lines": [
+        {
+          "line": 36,
+          "text": "    public static byte[] A(byte[] bArr, String str, byte[] bArr2) {"
+        },
+        {
+          "line": 37,
+          "text": "        bArr.getClass();"
+        },
+        {
+          "line": 38,
+          "text": "        str.getClass();"
+        },
+        {
+          "line": 39,
+          "text": "        bArr2.getClass();"
+        },
+        {
+          "line": 40,
+          "text": "        if (bArr.length <= 28) {"
+        },
+        {
+          "line": 41,
+          "text": "            nj4.j(kfb.j(bArr.length, \"Wrapped key too short: \", \" bytes\"));"
+        },
+        {
+          "line": 42,
+          "text": "            return null;"
+        },
+        {
+          "line": 43,
+          "text": "        }"
+        },
+        {
+          "line": 44,
+          "text": "        byte[] m = ign.m(bArr, 0, 12);"
+        },
+        {
+          "line": 45,
+          "text": "        byte[] m2 = ign.m(bArr, 12, bArr.length);"
+        },
+        {
+          "line": 46,
+          "text": "        Cipher cipher = Cipher.getInstance(\"AES/GCM/NoPadding\");"
+        },
+        {
+          "line": 47,
+          "text": "        cipher.init(2, new SecretKeySpec(bArr2, \"AES\"), new GCMParameterSpec(128, m));"
+        },
+        {
+          "line": 48,
+          "text": "        byte[] bytes = str.getBytes(lf2.f9007a);"
+        },
+        {
+          "line": 49,
+          "text": "        bytes.getClass();"
+        },
+        {
+          "line": 50,
+          "text": "        cipher.updateAAD(bytes);"
+        },
+        {
+          "line": 51,
+          "text": "        byte[] doFinal = cipher.doFinal(m2);"
+        },
+        {
+          "line": 52,
+          "text": "        doFinal.getClass();"
+        },
+        {
+          "line": 53,
+          "text": "        return doFinal;"
+        },
+        {
+          "line": 54,
+          "text": "    }"
+        },
+        {
+          "line": 55,
+          "text": ""
+        },
+        {
+          "line": 56,
+          "text": "    public static Typeface B(String str, l37 l37Var, int i) {"
+        }
+      ]
+    },
+    {
+      "id": "audio_aes_ctr",
+      "source": "work/jadx/sources/com/suno/android/common_media/drm/player/b.java",
+      "sha256": "1651edec308363f7ab7bbe4391241e0d504263e55baac6f25aff7cd39d0ecf37",
+      "evidence_type": "standalone-jadx-static-observation",
+      "lines": [
+        {
+          "line": 104,
+          "text": "    public final Cipher a(wh5 wh5Var, pf4 pf4Var) {"
+        },
+        {
+          "line": 105,
+          "text": "        byte[] copyOf;"
+        },
+        {
+          "line": 106,
+          "text": "        xo9 xo9Var = wh5Var.f16042a;"
+        },
+        {
+          "line": 107,
+          "text": "        long j = pf4Var.f;"
+        },
+        {
+          "line": 108,
+          "text": "        wh5Var.b.getClass();"
+        },
+        {
+          "line": 109,
+          "text": "        xo9Var.getClass();"
+        },
+        {
+          "line": 110,
+          "text": "        byte[] bArr = xo9Var.b;"
+        },
+        {
+          "line": 111,
+          "text": "        if (bArr.length != 16) {"
+        },
+        {
+          "line": 112,
+          "text": "            nj4.j(jh3.f(bArr.length, \"IV must be 16 bytes, got \"));"
+        },
+        {
+          "line": 113,
+          "text": "            return null;"
+        },
+        {
+          "line": 114,
+          "text": "        }"
+        },
+        {
+          "line": 115,
+          "text": "        Cipher cipher = Cipher.getInstance(\"AES/CTR/NoPadding\");"
+        },
+        {
+          "line": 116,
+          "text": "        SecretKeySpec secretKeySpec = new SecretKeySpec(xo9Var.f16774a, \"AES\");"
+        },
+        {
+          "line": 117,
+          "text": "        long j2 = j / 16;"
+        },
+        {
+          "line": 118,
+          "text": "        int i = (int) (j % 16);"
+        },
+        {
+          "line": 119,
+          "text": "        if (j2 == 0) {"
+        },
+        {
+          "line": 120,
+          "text": "            copyOf = Arrays.copyOf(bArr, bArr.length);"
+        },
+        {
+          "line": 121,
+          "text": "        } else {"
+        },
+        {
+          "line": 122,
+          "text": "            copyOf = Arrays.copyOf(bArr, bArr.length);"
+        },
+        {
+          "line": 123,
+          "text": "            int length = copyOf.length - 1;"
+        },
+        {
+          "line": 124,
+          "text": "            if (length >= 0) {"
+        },
+        {
+          "line": 125,
+          "text": "                while (true) {"
+        },
+        {
+          "line": 126,
+          "text": "                    int i2 = length - 1;"
+        },
+        {
+          "line": 127,
+          "text": "                    if (j2 == 0) {"
+        },
+        {
+          "line": 128,
+          "text": "                        break;"
+        },
+        {
+          "line": 129,
+          "text": "                    }"
+        },
+        {
+          "line": 130,
+          "text": "                    long j3 = (copyOf[length] & 255) + (255 & j2);"
+        },
+        {
+          "line": 131,
+          "text": "                    copyOf[length] = (byte) j3;"
+        },
+        {
+          "line": 132,
+          "text": "                    j2 = (j2 >> 8) + (j3 >> 8);"
+        },
+        {
+          "line": 133,
+          "text": "                    if (i2 < 0) {"
+        },
+        {
+          "line": 134,
+          "text": "                        break;"
+        },
+        {
+          "line": 135,
+          "text": "                    }"
+        },
+        {
+          "line": 136,
+          "text": "                    length = i2;"
+        },
+        {
+          "line": 137,
+          "text": "                }"
+        },
+        {
+          "line": 138,
+          "text": "            }"
+        },
+        {
+          "line": 139,
+          "text": "        }"
+        },
+        {
+          "line": 140,
+          "text": "        IvParameterSpec ivParameterSpec = new IvParameterSpec(copyOf);"
+        },
+        {
+          "line": 141,
+          "text": "        if (j > 0) {"
+        },
+        {
+          "line": 142,
+          "text": "            this.c.f13746a.getClass();"
+        },
+        {
+          "line": 143,
+          "text": "        }"
+        },
+        {
+          "line": 144,
+          "text": "        cipher.init(2, secretKeySpec, ivParameterSpec);"
+        },
+        {
+          "line": 145,
+          "text": "        if (i > 0) {"
+        },
+        {
+          "line": 146,
+          "text": "            cipher.update(new byte[i]);"
+        },
+        {
+          "line": 147,
+          "text": "        }"
+        },
+        {
+          "line": 148,
+          "text": "        return cipher;"
+        },
+        {
+          "line": 149,
+          "text": "    }"
+        },
+        {
+          "line": 150,
+          "text": ""
+        },
+        {
+          "line": 151,
+          "text": "    public final String b() {"
+        },
+        {
+          "line": 152,
+          "text": "        Uri uri;"
+        },
+        {
+          "line": 153,
+          "text": "        pf4 pf4Var = this.j;"
+        },
+        {
+          "line": 154,
+          "text": "        if (pf4Var == null || (uri = pf4Var.f11490a) == null) {"
+        },
+        {
+          "line": 155,
+          "text": "            return null;"
+        },
+        {
+          "line": 156,
+          "text": "        }"
+        },
+        {
+          "line": 157,
+          "text": "        return h(uri);"
+        },
+        {
+          "line": 394,
+          "text": "        tvi tviVar = this.d;"
+        },
+        {
+          "line": 395,
+          "text": "        bArr.getClass();"
+        },
+        {
+          "line": 396,
+          "text": "        if (i2 != 0) {"
+        },
+        {
+          "line": 397,
+          "text": "            Cipher cipher = this.h;"
+        },
+        {
+          "line": 398,
+          "text": "            kf4 kf4Var = this.f3443a;"
+        },
+        {
+          "line": 399,
+          "text": "            if (cipher == null) {"
+        },
+        {
+          "line": 400,
+          "text": "                this.s = true;"
+        },
+        {
+          "line": 401,
+          "text": "                return kf4Var.read(bArr, i, i2);"
+        },
+        {
+          "line": 402,
+          "text": "            }"
+        },
+        {
+          "line": 403,
+          "text": "            byte[] bArr2 = this.k;"
+        },
+        {
+          "line": 404,
+          "text": "            if (bArr2.length < i2) {"
+        },
+        {
+          "line": 405,
+          "text": "                bArr2 = new byte[i2];"
+        },
+        {
+          "line": 406,
+          "text": "                this.k = bArr2;"
+        },
+        {
+          "line": 407,
+          "text": "            }"
+        },
+        {
+          "line": 408,
+          "text": "            int read = kf4Var.read(bArr2, 0, i2);"
+        },
+        {
+          "line": 409,
+          "text": "            boolean z = this.s;"
+        },
+        {
+          "line": 410,
+          "text": "            this.s = true;"
+        },
+        {
+          "line": 411,
+          "text": "            if (read == -1) {"
+        },
+        {
+          "line": 412,
+          "text": "                return -1;"
+        },
+        {
+          "line": 413,
+          "text": "            }"
+        },
+        {
+          "line": 414,
+          "text": "            if (read <= 0) {"
+        },
+        {
+          "line": 415,
+          "text": "                return read;"
+        },
+        {
+          "line": 416,
+          "text": "            }"
+        },
+        {
+          "line": 417,
+          "text": "            try {"
+        },
+        {
+          "line": 418,
+          "text": "                byte[] update = cipher.update(this.k, 0, read);"
+        },
+        {
+          "line": 419,
+          "text": "                if (update == null) {"
+        },
+        {
+          "line": 420,
+          "text": "                    update = new byte[0];"
+        },
+        {
+          "line": 421,
+          "text": "                }"
+        },
+        {
+          "line": 422,
+          "text": "                if (update.length != read) {"
+        },
+        {
+          "line": 423,
+          "text": "                    throw new DrmPlaybackException.DecryptionError(this.i, \"payload size \" + update.length + \" differs from encrypted source \" + read, null);"
+        },
+        {
+          "line": 424,
+          "text": "                }"
+        },
+        {
+          "line": 425,
+          "text": "                if (update.length != 0) {"
+        },
+        {
+          "line": 426,
+          "text": "                    if (!z) {"
+        },
+        {
+          "line": 427,
+          "text": "                        this.n = SystemClock.elapsedRealtime();"
+        },
+        {
+          "line": 428,
+          "text": "                        f();"
+        },
+        {
+          "line": 429,
+          "text": "                    }"
+        },
+        {
+          "line": 430,
+          "text": "                    try {"
+        },
+        {
+          "line": 449,
+          "text": "                    }"
+        },
+        {
+          "line": 450,
+          "text": "                    Throwable a2 = ikg.a(hkgVar);"
+        },
+        {
+          "line": 451,
+          "text": "                    if (a2 != null) {"
+        },
+        {
+          "line": 452,
+          "text": "                        tviVar.a(a2, new b85(17));"
+        },
+        {
+          "line": 453,
+          "text": "                    }"
+        }
+      ]
+    },
+    {
+      "id": "player_open",
+      "source": "work/drm-player-b-simple.java",
+      "sha256": "e167d2a3eb903a1f713a806e8473b7feb3e4fa4ded3166432dc1a30d54ad07e7",
+      "evidence_type": "standalone-jadx-static-observation",
+      "lines": [
+        {
+          "line": 198,
+          "text": "        this.s = false;"
+        },
+        {
+          "line": 199,
+          "text": "        this.m = SystemClock.elapsedRealtime();"
+        },
+        {
+          "line": 200,
+          "text": "        this.n = 0;"
+        },
+        {
+          "line": 201,
+          "text": "        Uri uri = pf4Var.f11490a;"
+        },
+        {
+          "line": 202,
+          "text": "        long j = pf4Var.f;"
+        },
+        {
+          "line": 203,
+          "text": "        this.o = uri.getQueryParameter(\"drm_media_format\");"
+        },
+        {
+          "line": 204,
+          "text": "        this.p = uri.getQueryParameter(\"drm_delivery\");"
+        },
+        {
+          "line": 205,
+          "text": "        String queryParameter = uri.getQueryParameter(\"drm_encoded\");"
+        },
+        {
+          "line": 206,
+          "text": "        if (queryParameter == null) goto L5;"
+        },
+        {
+          "line": 207,
+          "text": "        Boolean bool = sli.r0(queryParameter);"
+        },
+        {
+          "line": 208,
+          "text": "    L6:"
+        },
+        {
+          "line": 209,
+          "text": "        this.q = bool;"
+        },
+        {
+          "line": 210,
+          "text": "        int i = 1;"
+        },
+        {
+          "line": 211,
+          "text": "        if (j != 0) goto L9;"
+        },
+        {
+          "line": 212,
+          "text": "        boolean z = true;"
+        },
+        {
+          "line": 213,
+          "text": "    L10:"
+        },
+        {
+          "line": 214,
+          "text": "        yy6 yy6Var = this.r;"
+        },
+        {
+          "line": 215,
+          "text": "        yy6Var.getClass();"
+        },
+        {
+          "line": 216,
+          "text": "        if (z == false) goto L13;"
+        },
+        {
+          "line": 217,
+          "text": "        byte[] bArr = new byte[0];"
+        },
+        {
+          "line": 218,
+          "text": "    L14:"
+        },
+        {
+          "line": 219,
+          "text": "        yy6Var.c = bArr;"
+        },
+        {
+          "line": 220,
+          "text": "        String h = h(uri);"
+        },
+        {
+          "line": 221,
+          "text": "        if (h == null) goto L24;"
+        },
+        {
+          "line": 222,
+          "text": "        String queryParameter2 = uri.getQueryParameter(\"drm_media_format\");"
+        },
+        {
+          "line": 223,
+          "text": "        if (queryParameter2 == null) goto L24;"
+        },
+        {
+          "line": 224,
+          "text": "        String queryParameter3 = uri.getQueryParameter(\"drm_delivery\");"
+        },
+        {
+          "line": 225,
+          "text": "        if (queryParameter3 == null) goto L24;"
+        },
+        {
+          "line": 226,
+          "text": "        ((AnalyticsManagerImpl) this.e).f(new yp(Category.Mango, z1b.PlaybackSourceSelected, ActionType.Event, ElementType.Clip, Id.m1534constructorimpl(h), new MangoSourceSelectedMetadata(h, \"android\", queryParameter2, queryParameter3, true, this.f.invoke())), null);"
+        },
+        {
+          "line": 227,
+          "text": "    L24:"
+        },
+        {
+          "line": 228,
+          "text": "        b05 a2 = qdo.a(this.g, null, null, new a(this, pf4Var, null), 3);"
+        },
+        {
+          "line": 229,
+          "text": "        long c = this.f3443a.c(pf4Var);"
+        },
+        {
+          "line": 230,
+          "text": "        this.h = (Cipher) ldo.f(hp5.f6723a, new lh3(a2, ee3Var, i));"
+        },
+        {
+          "line": 231,
+          "text": "        return c;"
+        },
+        {
+          "line": 232,
+          "text": "    L13:"
+        },
+        {
+          "line": 233,
+          "text": "        bArr = null;"
+        },
+        {
+          "line": 234,
+          "text": "        goto L14"
+        },
+        {
+          "line": 235,
+          "text": "    L9:"
+        },
+        {
+          "line": 381,
+          "text": "        return null;"
+        },
+        {
+          "line": 382,
+          "text": "    L20:"
+        },
+        {
+          "line": 383,
+          "text": "        DefaultRaise g = kfb.g(obj, false);"
+        },
+        {
+          "line": 384,
+          "text": "        String queryParameter = uri.getQueryParameter(\"drm_content_id\");     // Catch: Throwable -> L54 RaiseCancellationException -> L56"
+        },
+        {
+          "line": 385,
+          "text": "        qh5 qh5Var = qh5.f12181a;"
+        },
+        {
+          "line": 386,
+          "text": "        if (queryParameter == null) goto L62;"
+        },
+        {
+          "line": 387,
+          "text": "        String queryParameter2 = uri.getQueryParameter(\"drm_content_type\");     // Catch: Throwable -> L54 RaiseCancellationException -> L56"
+        },
+        {
+          "line": 388,
+          "text": "        if (queryParameter2 == null) goto L60;"
+        },
+        {
+          "line": 389,
+          "text": "        oh5.Companion.getClass();     // Catch: Throwable -> L54 RaiseCancellationException -> L56"
+        },
+        {
+          "line": 390,
+          "text": "        oh5 a2 = nh5.a(queryParameter2);     // Catch: Throwable -> L54 RaiseCancellationException -> L56"
+        },
+        {
+          "line": 391,
+          "text": "        if (a2 == null) goto L58;"
+        },
+        {
+          "line": 392,
+          "text": "        long elapsedRealtime = SystemClock.elapsedRealtime();     // Catch: Throwable -> L54 RaiseCancellationException -> L56"
+        },
+        {
+          "line": 393,
+          "text": "        Ref.IntRef intRef2 = new Ref.IntRef();     // Catch: Throwable -> L54 RaiseCancellationException -> L56"
+        },
+        {
+          "line": 394,
+          "text": "        intRef2.element = -1;     // Catch: Throwable -> L54 RaiseCancellationException -> L56"
+        },
+        {
+          "line": 395,
+          "text": "        k64 k64Var = new k64(25);     // Catch: Throwable -> L54 RaiseCancellationException -> L56"
+        },
+        {
+          "line": 396,
+          "text": "        uh5 uh5Var = new uh5(intRef2, this, queryParameter, a2, null);     // Catch: Throwable -> L54 RaiseCancellationException -> L56"
+        },
+        {
+          "line": 397,
+          "text": "        th5Var.j = uri;     // Catch: Throwable -> L54 RaiseCancellationException -> L56"
+        },
+        {
+          "line": 398,
+          "text": "        th5Var.k = g;     // Catch: Throwable -> L54 RaiseCancellationException -> L56"
+        },
+        {
+          "line": 399,
+          "text": "        th5Var.l = g;     // Catch: Throwable -> L54 RaiseCancellationException -> L56"
+        },
+        {
+          "line": 400,
+          "text": "        th5Var.m = intRef2;     // Catch: Throwable -> L54 RaiseCancellationException -> L56"
+        },
+        {
+          "line": 401,
+          "text": "        th5Var.n = elapsedRealtime;     // Catch: Throwable -> L54 RaiseCancellationException -> L56"
+        },
+        {
+          "line": 402,
+          "text": "        th5Var.q = 1;     // Catch: Throwable -> L54 RaiseCancellationException -> L56"
+        },
+        {
+          "line": 403,
+          "text": "        Object a3 = clg.a(3, 300, k64Var, uh5Var, th5Var);     // Catch: Throwable -> L54 RaiseCancellationException -> L56"
+        },
+        {
+          "line": 404,
+          "text": "        if (a3 != hi3Var) goto L31;"
+        },
+        {
+          "line": 405,
+          "text": "        return hi3Var;"
+        }
+      ]
+    },
+    {
+      "id": "player_license_call",
+      "source": "work/jadx/sources/defpackage/uh5.java",
+      "sha256": "8ec2afd7defc15ee5c8082d625bee1ad049940d45e16e69494d2392a6b49245c",
+      "evidence_type": "standalone-jadx-static-observation",
+      "lines": [
+        {
+          "line": 40,
+          "text": "            if (i == 1) {"
+        },
+        {
+          "line": 41,
+          "text": "                eho.l(obj);"
+        },
+        {
+          "line": 42,
+          "text": "                return obj;"
+        },
+        {
+          "line": 43,
+          "text": "            }"
+        },
+        {
+          "line": 44,
+          "text": "            c3k.i(\"call to 'resume' before 'invoke' with coroutine\");"
+        },
+        {
+          "line": 45,
+          "text": "            return null;"
+        },
+        {
+          "line": 46,
+          "text": "        }"
+        },
+        {
+          "line": 47,
+          "text": "        eho.l(obj);"
+        },
+        {
+          "line": 48,
+          "text": "        this.k.element++;"
+        },
+        {
+          "line": 49,
+          "text": "        a47 a47Var = this.l.b;"
+        },
+        {
+          "line": 50,
+          "text": "        String m1534constructorimpl = Id.m1534constructorimpl(this.m);"
+        },
+        {
+          "line": 51,
+          "text": "        this.j = 1;"
+        },
+        {
+          "line": 52,
+          "text": "        Object C = a47Var.C(m1534constructorimpl, this.n, this);"
+        },
+        {
+          "line": 53,
+          "text": "        return C == hi3Var ? hi3Var : C;"
+        },
+        {
+          "line": 54,
+          "text": "    }"
+        },
+        {
+          "line": 55,
+          "text": "}"
+        }
+      ]
+    },
+    {
+      "id": "license_wrapper",
+      "source": "work/jadx/sources/defpackage/a47.java",
+      "sha256": "eb910bb5b48c0c7414f969fcc737f7e74552f04809fe87cacdf8e30890a9d582",
+      "evidence_type": "standalone-jadx-static-observation",
+      "lines": [
+        {
+          "line": 293,
+          "text": "            li5 r5 = (defpackage.li5) r5"
+        },
+        {
+          "line": 294,
+          "text": "            r0.l = r4"
+        },
+        {
+          "line": 295,
+          "text": "            java.lang.Object r8 = r5.b(r6, r7, r0)"
+        },
+        {
+          "line": 296,
+          "text": "            if (r8 != r1) goto L45"
+        },
+        {
+          "line": 297,
+          "text": "            return r1"
+        },
+        {
+          "line": 298,
+          "text": "        L45:"
+        },
+        {
+          "line": 299,
+          "text": "            arrow.core.Either r8 = (arrow.core.Either) r8"
+        },
+        {
+          "line": 300,
+          "text": "            boolean r5 = r8 instanceof arrow.core.Either.Right"
+        },
+        {
+          "line": 301,
+          "text": "            if (r5 == 0) goto L6b"
+        },
+        {
+          "line": 302,
+          "text": "            arrow.core.Either$Right r8 = (arrow.core.Either.Right) r8"
+        },
+        {
+          "line": 303,
+          "text": "            java.lang.Object r5 = r8.getValue()"
+        },
+        {
+          "line": 304,
+          "text": "            jv1 r5 = (defpackage.jv1) r5"
+        },
+        {
+          "line": 305,
+          "text": "            jv1 r6 = new jv1"
+        },
+        {
+          "line": 306,
+          "text": "            wh5 r7 = new wh5"
+        },
+        {
+          "line": 307,
+          "text": "            java.lang.Object r8 = r5.f8052a"
+        },
+        {
+          "line": 308,
+          "text": "            xo9 r8 = (defpackage.xo9) r8"
+        },
+        {
+          "line": 309,
+          "text": "            xq5 r0 = defpackage.mio.f9695a"
+        },
+        {
+          "line": 310,
+          "text": "            r7.<init>(r8, r0)"
+        },
+        {
+          "line": 311,
+          "text": "            boolean r5 = r5.b"
+        },
+        {
+          "line": 312,
+          "text": "            r6.<init>(r7, r5)"
+        },
+        {
+          "line": 313,
+          "text": "            arrow.core.Either$Right r5 = new arrow.core.Either$Right"
+        },
+        {
+          "line": 314,
+          "text": "            r5.<init>(r6)"
+        },
+        {
+          "line": 315,
+          "text": "            return r5"
+        },
+        {
+          "line": 316,
+          "text": "        L6b:"
+        },
+        {
+          "line": 317,
+          "text": "            boolean r5 = r8 instanceof arrow.core.Either.Left"
+        },
+        {
+          "line": 318,
+          "text": "            if (r5 == 0) goto L70"
+        },
+        {
+          "line": 319,
+          "text": "            return r8"
+        },
+        {
+          "line": 320,
+          "text": "        L70:"
+        },
+        {
+          "line": 321,
+          "text": "            defpackage.zym.i()"
+        },
+        {
+          "line": 322,
+          "text": "            return r3"
+        },
+        {
+          "line": 323,
+          "text": "        */"
+        },
+        {
+          "line": 324,
+          "text": "        throw new UnsupportedOperationException(\"Method not decompiled: defpackage.a47.C(java.lang.String, oh5, ge3):java.lang.Object\");"
+        },
+        {
+          "line": 325,
+          "text": "    }"
+        },
+        {
+          "line": 326,
+          "text": ""
+        },
+        {
+          "line": 327,
+          "text": "    /* JADX WARN: Removed duplicated region for block: B:109:0x0256  */"
+        },
+        {
+          "line": 328,
+          "text": "    /* JADX WARN: Removed duplicated region for block: B:114:0x0188  */"
+        },
+        {
+          "line": 329,
+          "text": "    /* JADX WARN: Removed duplicated region for block: B:115:0x017f  */"
+        },
+        {
+          "line": 330,
+          "text": "    /* JADX WARN: Removed duplicated region for block: B:116:0x0176  */"
+        }
+      ]
+    },
+    {
+      "id": "license_di",
+      "source": "work/jadx/sources/defpackage/w74.java",
+      "sha256": "a3faa4429e5c44fc570c95acea1e677e3d5c42817695ce747fcacb85e32c3fed",
+      "evidence_type": "standalone-jadx-static-observation",
+      "lines": [
+        {
+          "line": 1105,
+          "text": "            case EnergyProfile.EVCONNECTOR_TYPE_OTHER /* 101 */:"
+        },
+        {
+          "line": 1106,
+          "text": "                return new gc5();"
+        },
+        {
+          "line": 1107,
+          "text": "            case 102:"
+        },
+        {
+          "line": 1108,
+          "text": "                LicenseService provideLicenseService = n84Var.c.provideLicenseService((zkg) n84Var.X.get());"
+        },
+        {
+          "line": 1109,
+          "text": "                o7l.a(provideLicenseService);"
+        },
+        {
+          "line": 1110,
+          "text": "                return provideLicenseService;"
+        },
+        {
+          "line": 1111,
+          "text": "            case 103:"
+        },
+        {
+          "line": 1112,
+          "text": "                return new hi5();"
+        }
+      ]
+    },
+    {
+      "id": "license_service_provider",
+      "source": "work/jadx/sources/com/suno/android/common_networking/di/NetworkingServicesModule.java",
+      "sha256": "a3bb7caeaed0f0a24b6b9a546ddd8ba18a4a6b12cc9428075212f47b7f5fa121",
+      "evidence_type": "standalone-jadx-static-observation",
+      "lines": [
+        {
+          "line": 158,
+          "text": "        return (LibraryService) ev2.m(retrofit, LibraryService.class);"
+        },
+        {
+          "line": 159,
+          "text": "    }"
+        },
+        {
+          "line": 160,
+          "text": ""
+        },
+        {
+          "line": 161,
+          "text": "    public final LicenseService provideLicenseService(zkg retrofit) {"
+        },
+        {
+          "line": 162,
+          "text": "        return (LicenseService) ev2.m(retrofit, LicenseService.class);"
+        },
+        {
+          "line": 163,
+          "text": "    }"
+        },
+        {
+          "line": 164,
+          "text": ""
+        }
+      ]
+    }
+  ],
+  "limitations": [
+    "Static analysis only; server acceptance and successful playback require separate verification.",
+    "Simple-mode reconstructions retain gotos and are not original source.",
+    "No credentials, received rights values, or unwrapped keys are included."
+  ]
+}

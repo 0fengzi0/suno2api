@@ -1,0 +1,422 @@
+package gateway
+
+import (
+	"context"
+	"errors"
+	"net/http"
+	"os"
+	"path/filepath"
+	"sort"
+	"strings"
+	"sync"
+	"time"
+
+	"suno2api/internal/session"
+)
+
+type runtimeAccount struct {
+	client   AccountClient
+	cancel   context.CancelFunc
+	ctx      context.Context
+	inflight int
+	cursor   float64
+	started  bool
+}
+type Gateway struct {
+	mu                             sync.Mutex
+	state                          persistent
+	accounts                       map[string]*runtimeAccount
+	config                         Config
+	dataDir, downloadDir, adminKey string
+	adminSessions                  map[string]adminSession
+	loginAttempts                  map[string]loginAttempt
+	ctx                            context.Context
+	cancel                         context.CancelFunc
+	wait                           sync.WaitGroup
+	mux                            *http.ServeMux
+	running, closed                bool
+	pollCursor                     int
+}
+
+func New(config Config) (*Gateway, error) {
+	if config.DataDir == "" {
+		config.DataDir = "gateway-data"
+	}
+	root, err := filepath.Abs(config.DataDir)
+	if err != nil {
+		return nil, err
+	}
+	for _, path := range []string{root, filepath.Join(root, "accounts"), filepath.Join(root, "downloads")} {
+		if err := os.MkdirAll(path, 0700); err != nil {
+			return nil, err
+		}
+	}
+	downloadDir := config.DownloadDir
+	if downloadDir == "" {
+		downloadDir = filepath.Join(root, "downloads")
+	}
+	downloadDir, err = filepath.Abs(downloadDir)
+	if err != nil {
+		return nil, err
+	}
+	if err := os.MkdirAll(downloadDir, 0700); err != nil {
+		return nil, err
+	}
+	if config.RequestTimeout <= 0 {
+		config.RequestTimeout = 10 * time.Minute
+	}
+	if config.DefaultModel == "" {
+		config.DefaultModel = "v6-mini"
+	}
+	if config.AccountClientFactory == nil {
+		config.AccountClientFactory = defaultFactory
+	}
+	adminKey := strings.TrimSpace(config.AdminKey)
+	keyPath := filepath.Join(root, "admin.key")
+	if adminKey == "" {
+		data, err := os.ReadFile(keyPath)
+		if err == nil {
+			adminKey = strings.TrimSpace(string(data))
+		} else if os.IsNotExist(err) {
+			adminKey, err = randomSecret()
+			if err != nil {
+				return nil, err
+			}
+			if err := atomicFile(keyPath, []byte(adminKey+"\n")); err != nil {
+				return nil, err
+			}
+		} else {
+			return nil, err
+		}
+	}
+	if len(adminKey) < 32 {
+		return nil, errors.New("gateway administrator key must contain at least 32 characters")
+	}
+	ctx, cancel := context.WithCancel(context.Background())
+	service := &Gateway{config: config, dataDir: root, downloadDir: downloadDir, adminKey: digest(adminKey), accounts: make(map[string]*runtimeAccount), adminSessions: make(map[string]adminSession), loginAttempts: make(map[string]loginAttempt), ctx: ctx, cancel: cancel, mux: http.NewServeMux()}
+	service.state = persistent{Version: 1, Accounts: map[string]*accountRecord{}, Jobs: map[string]*JobView{}, Keys: map[string]*keyRecord{}, Files: map[string]*fileRecord{}}
+	if err := readJSON(filepath.Join(root, "metadata.json"), &service.state); err != nil && !os.IsNotExist(err) {
+		cancel()
+		return nil, errors.New("gateway metadata could not be loaded")
+	}
+	if service.state.Version != 1 || service.state.Accounts == nil || service.state.Jobs == nil || service.state.Keys == nil || service.state.Files == nil {
+		cancel()
+		return nil, errors.New("unsupported gateway metadata format")
+	}
+	for _, job := range service.state.Jobs {
+		if job.State == "submitting" {
+			job.State = "submission_unknown"
+			job.Error = "服务重启时提交结果未确认，请查询原任务，不要自动重提"
+		} else if job.State == "queued" {
+			job.State = "interrupted"
+			job.Error = "服务重启前尚未提交，请明确创建新任务"
+		}
+	}
+	for id, record := range service.state.Accounts {
+		record.Inflight = 0
+		if record.Enabled && record.DeletedAt == nil {
+			if err := service.buildAccountLocked(id); err != nil {
+				record.State = "configuration_error"
+				record.LastError = "账号客户端配置不可用"
+			}
+		}
+	}
+	if err := service.persistLocked(); err != nil {
+		cancel()
+		return nil, err
+	}
+	service.routes()
+	return service, nil
+}
+
+func (gateway *Gateway) AdminKeyPath() string  { return filepath.Join(gateway.dataDir, "admin.key") }
+func (gateway *Gateway) Handler() http.Handler { return gateway }
+func (gateway *Gateway) Close() error {
+	gateway.mu.Lock()
+	if gateway.closed {
+		gateway.mu.Unlock()
+		return nil
+	}
+	gateway.closed = true
+	gateway.cancel()
+	for _, runtime := range gateway.accounts {
+		runtime.cancel()
+	}
+	gateway.mu.Unlock()
+	gateway.wait.Wait()
+	return nil
+}
+func (gateway *Gateway) Run(ctx context.Context) error {
+	gateway.mu.Lock()
+	if gateway.closed {
+		gateway.mu.Unlock()
+		return errors.New("gateway is closed")
+	}
+	gateway.running = true
+	for id, runtime := range gateway.accounts {
+		gateway.startAccountLocked(id, runtime)
+	}
+	gateway.mu.Unlock()
+	ticker := time.NewTicker(15 * time.Second)
+	defer ticker.Stop()
+	for {
+		select {
+		case <-ctx.Done():
+			return gateway.Close()
+		case <-gateway.ctx.Done():
+			return gateway.Close()
+		case <-ticker.C:
+			gateway.pollJobs(ctx)
+		}
+	}
+}
+
+func (gateway *Gateway) buildAccountLocked(id string) error {
+	record := gateway.state.Accounts[id]
+	auth := gateway.authPath(id)
+	if _, err := os.Stat(auth); os.IsNotExist(err) {
+		auth = ""
+	}
+	client, err := gateway.config.AccountClientFactory(AccountClientConfig{ID: id, TokenFile: gateway.credentialPath(id), AuthCookieFile: auth, Protocol: record.Protocol, Model: record.Model, HTTPClient: gateway.config.HTTPClient})
+	if err != nil {
+		return err
+	}
+	ctx, cancel := context.WithCancel(gateway.ctx)
+	runtime := &runtimeAccount{client: client, ctx: ctx, cancel: cancel}
+	if old := gateway.accounts[id]; old != nil {
+		old.cancel()
+		runtime.inflight = old.inflight
+		runtime.cursor = old.cursor
+	}
+	gateway.accounts[id] = runtime
+	status, statusError := client.Status(context.Background())
+	record.Session = &status
+	if statusError != nil {
+		record.State = "attention"
+		record.LastError = "登录凭据不可用，请更新账号Cookie"
+	}
+	if gateway.running {
+		gateway.startAccountLocked(id, runtime)
+	}
+	return nil
+}
+
+func (gateway *Gateway) startAccountLocked(id string, runtime *runtimeAccount) {
+	if runtime.started {
+		return
+	}
+	runtime.started = true
+	gateway.wait.Add(1)
+	go func() {
+		defer gateway.wait.Done()
+		err := runtime.client.Run(runtime.ctx, func(event session.Event) {
+			gateway.mu.Lock()
+			defer gateway.mu.Unlock()
+			if gateway.accounts[id] != runtime {
+				return
+			}
+			record := gateway.state.Accounts[id]
+			status := event.Status
+			record.Session = &status
+			if event.ErrorCode != "" {
+				record.LastError = "保活状态：" + event.ErrorCode
+			}
+			_ = gateway.persistLocked()
+		})
+		if err != nil && runtime.ctx.Err() == nil {
+			gateway.mu.Lock()
+			if gateway.accounts[id] == runtime {
+				record := gateway.state.Accounts[id]
+				record.LastError = "自动保活已停止，请检查会话状态"
+				_ = gateway.persistLocked()
+			}
+			gateway.mu.Unlock()
+		}
+	}()
+}
+
+func (gateway *Gateway) AddAccount(ctx context.Context, input AccountInput) (AccountView, error) {
+	gateway.mu.Lock()
+	defer gateway.mu.Unlock()
+	return gateway.addAccountLocked(input)
+}
+func (gateway *Gateway) ImportAccount(ctx context.Context, input AccountInput) (AccountView, error) {
+	gateway.mu.Lock()
+	defer gateway.mu.Unlock()
+	identity := credentialIdentity(input.Cookie)
+	if identity == "" {
+		return AccountView{}, errors.New("导入的 Cookie 不包含有效 Suno 登录会话")
+	}
+	for id, record := range gateway.state.Accounts {
+		if record.IdentityHash == identity {
+			return gateway.updateAccountLocked(id, input)
+		}
+	}
+	return gateway.addAccountLocked(input)
+}
+
+func normalizeAccount(input AccountInput, model string) (AccountInput, error) {
+	input.Name = strings.TrimSpace(input.Name)
+	if input.Name == "" || len(input.Name) > 100 {
+		return input, errors.New("账号名称须为1至100字符")
+	}
+	if len(input.Cookie) > 65536 || len(input.AuthCookie) > 65536 {
+		return input, errors.New("Cookie 文件过大")
+	}
+	if input.Weight == 0 {
+		input.Weight = 1
+	}
+	if input.MaxConcurrency == 0 {
+		input.MaxConcurrency = 1
+	}
+	if input.Weight < 1 || input.Weight > 100 || input.MaxConcurrency < 1 || input.MaxConcurrency > 20 {
+		return input, errors.New("权重须为1至100，并发须为1至20")
+	}
+	if input.Protocol == "" {
+		input.Protocol = "web"
+	}
+	if input.Protocol != "web" && input.Protocol != "android" {
+		return input, errors.New("协议须为web或android")
+	}
+	if input.Model == "" {
+		input.Model = model
+	}
+	return input, nil
+}
+
+func (gateway *Gateway) addAccountLocked(input AccountInput) (AccountView, error) {
+	if gateway.closed {
+		return AccountView{}, errors.New("gateway is closed")
+	}
+	input, err := normalizeAccount(input, gateway.config.DefaultModel)
+	if err != nil {
+		return AccountView{}, err
+	}
+	if strings.TrimSpace(input.Cookie) == "" {
+		return AccountView{}, errors.New("请填写账号登录 Cookie")
+	}
+	if credentialIdentity(input.Cookie) == "" {
+		return AccountView{}, errors.New("请提供自己的有效Suno登录Cookie")
+	}
+	id, err := randomID()
+	if err != nil {
+		return AccountView{}, err
+	}
+	directory := filepath.Dir(gateway.credentialPath(id))
+	if err := os.MkdirAll(directory, 0700); err != nil {
+		return AccountView{}, err
+	}
+	if err := atomicFile(gateway.credentialPath(id), []byte(input.Cookie)); err != nil {
+		return AccountView{}, err
+	}
+	if input.AuthCookie != "" {
+		if err := atomicFile(gateway.authPath(id), []byte(input.AuthCookie)); err != nil {
+			return AccountView{}, err
+		}
+	}
+	enabled := true
+	if input.Enabled != nil {
+		enabled = *input.Enabled
+	}
+	now := time.Now().UTC()
+	record := &accountRecord{AccountView: AccountView{ID: id, Name: input.Name, Enabled: enabled, Weight: input.Weight, MaxConcurrency: input.MaxConcurrency, Protocol: input.Protocol, Model: input.Model, State: "unchecked", CreatedAt: now, UpdatedAt: now}, IdentityHash: credentialIdentity(input.Cookie)}
+	gateway.state.Accounts[id] = record
+	if enabled {
+		if err := gateway.buildAccountLocked(id); err != nil {
+			delete(gateway.state.Accounts, id)
+			return AccountView{}, errors.New("账号客户端无法创建")
+		}
+	}
+	if err := gateway.persistLocked(); err != nil {
+		return AccountView{}, err
+	}
+	return gateway.viewAccountLocked(id), nil
+}
+
+func (gateway *Gateway) updateAccountLocked(id string, input AccountInput) (AccountView, error) {
+	record := gateway.state.Accounts[id]
+	if record == nil {
+		return AccountView{}, errors.New("账号不存在")
+	}
+	if input.Name == "" {
+		input.Name = record.Name
+	}
+	if input.Protocol == "" {
+		input.Protocol = record.Protocol
+	}
+	if input.Model == "" {
+		input.Model = record.Model
+	}
+	if input.Weight == 0 {
+		input.Weight = record.Weight
+	}
+	if input.MaxConcurrency == 0 {
+		input.MaxConcurrency = record.MaxConcurrency
+	}
+	input, err := normalizeAccount(input, gateway.config.DefaultModel)
+	if err != nil {
+		return AccountView{}, err
+	}
+	if input.Cookie != "" {
+		identity := credentialIdentity(input.Cookie)
+		if identity == "" || record.IdentityHash != "" && identity != record.IdentityHash {
+			return AccountView{}, errors.New("账号凭据不能替换成其他账号，请新增账号")
+		}
+		if err := atomicFile(gateway.credentialPath(id), []byte(input.Cookie)); err != nil {
+			return AccountView{}, err
+		}
+		record.IdentityHash = credentialIdentity(input.Cookie)
+	}
+	if input.AuthCookie != "" {
+		if err := atomicFile(gateway.authPath(id), []byte(input.AuthCookie)); err != nil {
+			return AccountView{}, err
+		}
+	}
+	if old := gateway.accounts[id]; old != nil {
+		old.cancel()
+		delete(gateway.accounts, id)
+	}
+	record.Name = input.Name
+	record.Protocol = input.Protocol
+	record.Model = input.Model
+	record.Weight = input.Weight
+	record.MaxConcurrency = input.MaxConcurrency
+	if input.Enabled != nil {
+		record.Enabled = *input.Enabled
+	}
+	record.UpdatedAt = time.Now().UTC()
+	record.State = "unchecked"
+	record.LastError = ""
+	record.Billing = nil
+	record.Session = nil
+	if record.Enabled && record.DeletedAt == nil {
+		if err := gateway.buildAccountLocked(id); err != nil {
+			record.State = "configuration_error"
+			record.LastError = "账号客户端不可用"
+		}
+	}
+	if err := gateway.persistLocked(); err != nil {
+		return AccountView{}, err
+	}
+	return gateway.viewAccountLocked(id), nil
+}
+
+func accountContext(parent context.Context, runtime *runtimeAccount, timeout time.Duration) (context.Context, context.CancelFunc) {
+	ctx, cancel := context.WithTimeout(parent, timeout)
+	stop := context.AfterFunc(runtime.ctx, cancel)
+	return ctx, func() { stop(); cancel() }
+}
+
+func (gateway *Gateway) viewAccountLocked(id string) AccountView {
+	record := gateway.state.Accounts[id]
+	view := record.AccountView
+	return view
+}
+func (gateway *Gateway) accountViewsLocked() []AccountView {
+	views := make([]AccountView, 0, len(gateway.state.Accounts))
+	for id := range gateway.state.Accounts {
+		views = append(views, gateway.viewAccountLocked(id))
+	}
+	sort.Slice(views, func(i, j int) bool { return views[i].CreatedAt.Before(views[j].CreatedAt) })
+	return views
+}
