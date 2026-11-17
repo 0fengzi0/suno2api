@@ -24,7 +24,9 @@
 
 ## 添加账号与迁移现有账号
 
-登录后在账号页面粘贴自己账号的 Suno 页面 Cookie，可设置便于识别的名字。页面 Cookie 中的 `__session` 是 API 会话，`ajs_anonymous_id` 用于官网正常设备标识。认证 Cookie 是你在 `auth.suno.com` 正常认证请求中使用的 Cookie，可能包含 `__client`；它用于同一账号会话的正常续期。两者用途不同，实时消息 Ably token 不能作为登录材料。
+登录后在账号页面粘贴自己账号的 Suno 页面 Cookie，可设置便于识别的名字。网站 Cookie 中的 `__session` 是 API 会话，`ajs_anonymous_id` 是网页设备标识。认证 Cookie 是你在 `auth.suno.com` 正常认证请求中使用的 Cookie，可能包含 `__client`，用于同一账号会话的续期。
+
+认证 Cookie 可以单独填写，前提是它同时包含有效的 `__session` 和 `ajs_anonymous_id`。网关会从这份 Cookie 提取 API 登录会话和网页设备标识，并保存认证 Cookie 供续期。如果缺少 `__session`，或缺少 `ajs_anonymous_id`，则需再填写网站 Cookie。两份 Cookie 属于不同账号时网关会拒绝保存。Ably 实时消息 token 不是 Suno 登录凭据。
 
 接口接收 Cookie 文本，不接受调用方指定本机凭据路径。网关为各账号创建自己的受管文件，页面和账号列表不返回原 Cookie。添加或更新账号应使用自己已登录的正常会话材料；服务端要求重新登录或用户验证时，账号应进入相应状态。
 

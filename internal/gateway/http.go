@@ -316,7 +316,7 @@ func writeError(writer http.ResponseWriter, status int, code, message string) {
 	writeJSON(writer, status, map[string]string{"error": message, "code": code})
 }
 func safeInputError(err error) string {
-	for _, value := range []string{"账号名称须为1至100字符", "Cookie 文件过大", "权重须为1至100，并发须为1至20", "协议须为web或android", "请填写账号登录 Cookie", "账号不存在", "请提供自己的有效Suno登录Cookie", "账号凭据不能替换成其他账号，请新增账号"} {
+	for _, value := range []string{"账号名称须为1至100字符", "Cookie 文件过大", "权重须为1至100，并发须为1至20", "协议须为web或android", "请填写账号登录 Cookie", "账号不存在", "请提供自己的有效Suno登录Cookie", "账号凭据不能替换成其他账号，请新增账号", "认证Cookie中的登录会话无效", "认证Cookie未包含ajs_anonymous_id；请同时填写Suno网站Cookie", "认证Cookie未包含__session登录会话；请同时填写Suno网站Cookie", "网站Cookie与认证Cookie属于不同账号", "现有账号Cookie无法读取"} {
 		if err.Error() == value {
 			return value
 		}

@@ -49,6 +49,8 @@ go build -o dist/suno2api.exe ./cmd/suno2api
 
 网页协议需要原始 Cookie 中的 `__session` 与 `ajs_anonymous_id`。歌曲 API 只收到会话 token 和实际 Device-Id，不收到整份 Cookie；只有单个 JWT 时可用 `--device-id` 指定自己的现有设备标识。也支持 `SUNO_TOKEN_FILE` 或 `SUNO_TOKEN`。已配置 Cookie 文件时，默认在会话临近到期时通过 Suno 正常认证接口续期并原子写回；每次请求仍重新读取文件，以支持手工替换。
 
+在多账号网关中，如果你只有认证 Cookie，也可单独填写；它必须同时含有效 `__session` 和 `ajs_anonymous_id`。缺少其中任一项时请再填写网站 Cookie。
+
 `config.local.json` 会自动读取，也可用 `--config` 指定其他配置文件。本工作目录已有仅含本地文件路径的忽略配置，指向本次提供的 `work/suno-session.token`。新环境可参照 `config.example.json` 创建自己的配置，不应把凭据文件放入代码交付包。
 
 ```json

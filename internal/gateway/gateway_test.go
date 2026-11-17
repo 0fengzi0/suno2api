@@ -385,6 +385,104 @@ func TestAccountsUseIsolatedCredentialsAndRejectDifferentSubjectUpdates(t *testi
 	}
 }
 
+func TestAccountCanBeAddedWithCompleteAuthenticationCookieOnly(t *testing.T) {
+	fixture := newFixture(t)
+	token := cookieFixture("auth-only", "same-session")
+	cookies := "__client=auth-client; " + token
+	account, err := fixture.gateway.AddAccount(context.Background(), AccountInput{
+		Name: "auth only", AuthCookie: cookies, Enabled: boolPointer(false),
+	})
+	if err != nil {
+		t.Fatalf("complete authentication Cookie was not accepted: %v", err)
+	}
+	stored, err := os.ReadFile(fixture.gateway.credentialPath(account.ID))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !strings.Contains(string(stored), "__session=") || !strings.Contains(string(stored), "ajs_anonymous_id=") {
+		t.Fatal("the account API Cookie did not retain the session and device ID")
+	}
+	if storedAuth, err := os.ReadFile(fixture.gateway.authPath(account.ID)); err != nil || !strings.Contains(string(storedAuth), "__client=auth-client") {
+		t.Fatal("the original authentication Cookie was not stored separately")
+	}
+}
+
+func TestAdminAPIAddsAccountFromAuthenticationCookieOnly(t *testing.T) {
+	fixture := newFixture(t)
+	cookie, csrf := adminLogin(t, fixture.gateway)
+	authCookie := "__client=auth-client; " + cookieFixture("auth-only-api", "session-from-auth-cookie")
+	body, err := json.Marshal(AccountInput{
+		Name: "auth-cookie account", AuthCookie: authCookie, Enabled: boolPointer(false),
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	response := adminRequest(fixture.gateway, cookie, csrf, http.MethodPost, "/admin/api/accounts", string(body))
+	if response.Code != http.StatusCreated {
+		t.Fatalf("admin API rejected complete authentication Cookie: %d %s", response.Code, response.Body.String())
+	}
+	if strings.Contains(response.Body.String(), "auth-client") || strings.Contains(response.Body.String(), "session-from-auth-cookie") || strings.Contains(response.Body.String(), "current-device") {
+		t.Fatal("account response exposed a Cookie, session token, or device ID")
+	}
+	var result struct {
+		Account AccountView `json:"account"`
+	}
+	if err := json.Unmarshal(response.Body.Bytes(), &result); err != nil {
+		t.Fatal(err)
+	}
+	stored, err := os.ReadFile(fixture.gateway.credentialPath(result.Account.ID))
+	if err != nil || credentialIdentity(string(stored)) != credentialIdentity(cookieFixture("auth-only-api", "session-from-auth-cookie")) || !strings.Contains(string(stored), "ajs_anonymous_id=current-device") {
+		t.Fatal("admin API did not persist the extracted session and device ID")
+	}
+}
+
+func TestAuthenticationCookieOnlyExplainsMissingSessionOrDevice(t *testing.T) {
+	fixture := newFixture(t)
+	for _, tc := range []struct{ cookie, want string }{
+		{"__client=long-lived", "认证Cookie未包含__session登录会话；请同时填写Suno网站Cookie"},
+		{"__client=long-lived; __session=" + strings.Split(cookieFixture("missing-device", "sid"), "ajs_anonymous_id=")[0], "认证Cookie未包含ajs_anonymous_id；请同时填写Suno网站Cookie"},
+	} {
+		_, err := fixture.gateway.AddAccount(context.Background(), AccountInput{Name: "incomplete", AuthCookie: tc.cookie, Enabled: boolPointer(false)})
+		if err == nil || err.Error() != tc.want {
+			t.Fatalf("expected helpful missing Cookie message %q, got %v", tc.want, err)
+		}
+	}
+}
+
+func TestAuthenticationCookieOnlyCanRefreshCredentialsForExistingSameAccount(t *testing.T) {
+	fixture := newFixture(t)
+	account := fixture.add(t, "same account")
+	updatedAuth := "__client=rotated-client; " + cookieFixture("same account", "rotated-session")
+	fixture.gateway.mu.Lock()
+	updated, err := fixture.gateway.updateAccountLocked(account.ID, AccountInput{Name: account.Name, AuthCookie: updatedAuth})
+	fixture.gateway.mu.Unlock()
+	if err != nil || updated.ID != account.ID {
+		t.Fatalf("matching authentication Cookie update was rejected: %v", err)
+	}
+	stored, err := os.ReadFile(fixture.gateway.credentialPath(account.ID))
+	if err != nil || !strings.Contains(string(stored), "ajs_anonymous_id=current-device") || credentialIdentity(string(stored)) != credentialIdentity(cookieFixture("same account", "rotated-session")) {
+		t.Fatal("auth Cookie update did not preserve the existing device ID with the new session")
+	}
+	storedAuth, err := os.ReadFile(fixture.gateway.authPath(account.ID))
+	if err != nil || !strings.Contains(string(storedAuth), "rotated-client") {
+		t.Fatal("auth Cookie update was not persisted")
+	}
+}
+
+func TestAuthenticationAndWebsiteCookiesMustMatchAccount(t *testing.T) {
+	input := AccountInput{
+		Name:       "mismatched cookies",
+		Cookie:     cookieFixture("website-user", "website-session"),
+		AuthCookie: "__client=client; " + cookieFixture("different-auth-user", "auth-session"),
+	}
+	_, err := normalizeAccountCookies(input, "")
+	if err == nil || err.Error() != "网站Cookie与认证Cookie属于不同账号" {
+		t.Fatalf("mismatched account cookies were not rejected clearly: %v", err)
+	}
+}
+
+func boolPointer(value bool) *bool { return &value }
+
 func TestSingleSubmissionAffinityConcurrencyAndRestart(t *testing.T) {
 	fixture := newFixture(t)
 	one := fixture.add(t, "one")

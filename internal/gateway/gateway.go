@@ -243,6 +243,10 @@ func (gateway *Gateway) AddAccount(ctx context.Context, input AccountInput) (Acc
 func (gateway *Gateway) ImportAccount(ctx context.Context, input AccountInput) (AccountView, error) {
 	gateway.mu.Lock()
 	defer gateway.mu.Unlock()
+	input, err := normalizeAccountCookies(input, "")
+	if err != nil {
+		return AccountView{}, err
+	}
 	identity := credentialIdentity(input.Cookie)
 	if identity == "" {
 		return AccountView{}, errors.New("导入的 Cookie 不包含有效 Suno 登录会话")
@@ -253,6 +257,80 @@ func (gateway *Gateway) ImportAccount(ctx context.Context, input AccountInput) (
 		}
 	}
 	return gateway.addAccountLocked(input)
+}
+
+func parseGatewayCookies(value string) map[string]string {
+	value = strings.TrimSpace(strings.TrimPrefix(strings.TrimSpace(value), "\ufeff"))
+	if len(value) >= len("Cookie:") && strings.EqualFold(value[:len("Cookie:")], "Cookie:") {
+		value = strings.TrimSpace(value[len("Cookie:"):])
+	}
+	request := &http.Request{Header: http.Header{"Cookie": []string{value}}}
+	cookies := make(map[string]string)
+	for _, cookie := range request.Cookies() {
+		cookies[cookie.Name] = cookie.Value
+	}
+	return cookies
+}
+
+func sessionCookieValue(cookies map[string]string) (string, string) {
+	if value := cookies["__session"]; value != "" {
+		return "__session", value
+	}
+	names := make([]string, 0, len(cookies))
+	for name, value := range cookies {
+		if strings.HasPrefix(name, "__session_") && len(name) > len("__session_") && value != "" {
+			names = append(names, name)
+		}
+	}
+	sort.Strings(names)
+	if len(names) > 0 {
+		return names[0], cookies[names[0]]
+	}
+	return "", ""
+}
+
+func normalizeAccountCookies(input AccountInput, previousCookie string) (AccountInput, error) {
+	input.Cookie = strings.TrimSpace(input.Cookie)
+	input.AuthCookie = strings.TrimSpace(input.AuthCookie)
+	if input.Cookie == "" {
+		if input.AuthCookie == "" {
+			return input, nil
+		}
+		authCookies := parseGatewayCookies(input.AuthCookie)
+		name, token := sessionCookieValue(authCookies)
+		if token != "" {
+			identity := credentialIdentity(name + "=" + token)
+			if identity == "" {
+				return input, errors.New("认证Cookie中的登录会话无效")
+			}
+			device := authCookies["ajs_anonymous_id"]
+			if device == "" && previousCookie != "" {
+				device = parseGatewayCookies(previousCookie)["ajs_anonymous_id"]
+			}
+			if device == "" {
+				return input, errors.New("认证Cookie未包含ajs_anonymous_id；请同时填写Suno网站Cookie")
+			}
+			input.Cookie = name + "=" + token + "; ajs_anonymous_id=" + device
+		} else if previousCookie != "" {
+			input.Cookie = previousCookie
+		} else {
+			return input, errors.New("认证Cookie未包含__session登录会话；请同时填写Suno网站Cookie")
+		}
+	}
+	identity := credentialIdentity(input.Cookie)
+	if identity == "" {
+		return input, errors.New("请提供自己的有效Suno登录Cookie")
+	}
+	if input.AuthCookie != "" {
+		authCookies := parseGatewayCookies(input.AuthCookie)
+		if authIdentity := credentialIdentity(input.AuthCookie); authIdentity != "" && authIdentity != identity {
+			return input, errors.New("网站Cookie与认证Cookie属于不同账号")
+		}
+		if parseGatewayCookies(input.Cookie)["ajs_anonymous_id"] == "" && authCookies["ajs_anonymous_id"] != "" {
+			input.Cookie = strings.TrimSpace(input.Cookie) + "; ajs_anonymous_id=" + authCookies["ajs_anonymous_id"]
+		}
+	}
+	return input, nil
 }
 
 func normalizeAccount(input AccountInput, model string) (AccountInput, error) {
@@ -289,6 +367,10 @@ func (gateway *Gateway) addAccountLocked(input AccountInput) (AccountView, error
 		return AccountView{}, errors.New("gateway is closed")
 	}
 	input, err := normalizeAccount(input, gateway.config.DefaultModel)
+	if err != nil {
+		return AccountView{}, err
+	}
+	input, err = normalizeAccountCookies(input, "")
 	if err != nil {
 		return AccountView{}, err
 	}
@@ -338,6 +420,7 @@ func (gateway *Gateway) updateAccountLocked(id string, input AccountInput) (Acco
 	if record == nil {
 		return AccountView{}, errors.New("账号不存在")
 	}
+	var err error
 	if input.Name == "" {
 		input.Name = record.Name
 	}
@@ -353,7 +436,22 @@ func (gateway *Gateway) updateAccountLocked(id string, input AccountInput) (Acco
 	if input.MaxConcurrency == 0 {
 		input.MaxConcurrency = record.MaxConcurrency
 	}
-	input, err := normalizeAccount(input, gateway.config.DefaultModel)
+	if input.Cookie == "" && input.AuthCookie != "" {
+		previous, err := os.ReadFile(gateway.credentialPath(id))
+		if err != nil {
+			return AccountView{}, errors.New("现有账号Cookie无法读取")
+		}
+		input, err = normalizeAccountCookies(input, string(previous))
+		if err != nil {
+			return AccountView{}, err
+		}
+	} else {
+		input, err = normalizeAccountCookies(input, "")
+		if err != nil {
+			return AccountView{}, err
+		}
+	}
+	input, err = normalizeAccount(input, gateway.config.DefaultModel)
 	if err != nil {
 		return AccountView{}, err
 	}
