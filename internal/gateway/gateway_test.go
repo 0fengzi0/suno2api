@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"io/fs"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -34,6 +35,7 @@ type fakeClient struct {
 	runStarted  chan struct{}
 	runStopped  chan struct{}
 	lastIDs     []string
+	lastRequest generate.Request
 	getBlock    bool
 	getStarted  chan struct{}
 }
@@ -41,6 +43,7 @@ type fakeClient struct {
 func (client *fakeClient) Generate(ctx context.Context, input generate.Request) (generate.Response, error) {
 	client.mu.Lock()
 	client.calls++
+	client.lastRequest = input
 	response, err := client.response, client.failure
 	block := client.block
 	client.mu.Unlock()
@@ -105,7 +108,7 @@ func TestMixedModelsJudgeOnlyRequestedClips(t *testing.T) {
 	}
 }
 
-func TestDisableCancelsInFlightSongQueryAndPendingJobsRecoverWithoutResubmission(t *testing.T) {
+func TestDisableOnlyStopsNewGenerationsWhileMaintenanceContinues(t *testing.T) {
 	fixture := newFixture(t)
 	one := fixture.add(t, "one")
 	client := fixture.clients[one.ID]
@@ -113,10 +116,14 @@ func TestDisableCancelsInFlightSongQueryAndPendingJobsRecoverWithoutResubmission
 	client.getStarted = make(chan struct{})
 	finished := make(chan error, 1)
 	go func() {
-		runtime, _ := fixture.gateway.accountForOperation(one.ID)
+		runtime, err := fixture.gateway.accountForOperation(one.ID)
+		if err != nil {
+			finished <- err
+			return
+		}
 		ctx, cancel := accountContext(context.Background(), runtime, time.Second)
 		defer cancel()
-		_, err := runtime.client.Get(ctx, []string{testClip})
+		_, err = runtime.client.Get(ctx, []string{testClip})
 		finished <- err
 	}()
 	select {
@@ -127,17 +134,27 @@ func TestDisableCancelsInFlightSongQueryAndPendingJobsRecoverWithoutResubmission
 	disabled := false
 	fixture.gateway.mu.Lock()
 	_, err := fixture.gateway.updateAccountLocked(one.ID, AccountInput{Enabled: &disabled})
+	_, _, pickErr := fixture.gateway.pickAccountLocked("", "v6-mini")
+	runtime := fixture.gateway.accounts[one.ID]
 	fixture.gateway.mu.Unlock()
 	if err != nil {
 		t.Fatal(err)
 	}
+	if pickErr == nil {
+		t.Fatal("disabled account was still selected for generation")
+	}
+	if runtime == nil {
+		t.Fatal("disable removed the maintenance runtime and stopped renewal")
+	}
 	select {
-	case err := <-finished:
-		if !errors.Is(err, context.Canceled) {
-			t.Fatal("disabled account request was not cancelled")
-		}
-	case <-time.After(time.Second):
-		t.Fatal("disabled account kept network operation alive")
+	case <-finished:
+		t.Fatal("disable canceled an in-flight query instead of only new generations")
+	case <-time.After(200 * time.Millisecond):
+	}
+	select {
+	case <-finished:
+	case <-time.After(2 * time.Second):
+		t.Fatal("in-flight query did not finish")
 	}
 	fixture.gateway.mu.Lock()
 	fixture.gateway.state.Jobs["interrupted-submit"] = &JobView{ID: "interrupted-submit", AccountID: one.ID, State: "submitting", CreatedAt: time.Now()}
@@ -151,6 +168,9 @@ func TestDisableCancelsInFlightSongQueryAndPendingJobsRecoverWithoutResubmission
 	defer restarted.Close()
 	if restarted.state.Jobs["interrupted-submit"].State != "submission_unknown" {
 		t.Fatal("restart did not preserve ambiguous submission")
+	}
+	if restarted.accounts[one.ID] == nil {
+		t.Fatal("disabled account did not keep its maintenance runtime after restart")
 	}
 	for _, backend := range fixture.clients {
 		if backend.calls != 0 {
@@ -301,9 +321,9 @@ func TestAdminAuthenticationCSRFAndSecretSafePersistence(t *testing.T) {
 		t.Fatal("API key not created")
 	}
 	list := adminRequest(gateway, cookie, csrf, "GET", "/admin/api/overview", "")
-	metadata, _ := os.ReadFile(filepath.Join(gateway.dataDir, "metadata.json"))
+	metadata := managementMetadata(t, gateway.dataDir)
 	for _, private := range []string{secret, "private-auth", "must-not-return", "current-device", "header."} {
-		if strings.Contains(list.Body.String(), private) || strings.Contains(string(metadata), private) {
+		if strings.Contains(list.Body.String(), private) || strings.Contains(metadata, private) {
 			t.Fatalf("management metadata exposed secret %q", private)
 		}
 	}
@@ -333,6 +353,25 @@ func TestAdminAuthenticationCSRFAndSecretSafePersistence(t *testing.T) {
 	if response.Code != 403 {
 		t.Fatal("cross-site login accepted")
 	}
+}
+
+func managementMetadata(t *testing.T, root string) string {
+	t.Helper()
+	var combined strings.Builder
+	err := filepath.WalkDir(root, func(path string, entry fs.DirEntry, err error) error {
+		if err != nil || entry.IsDir() || strings.HasSuffix(entry.Name(), ".cookie") || strings.HasSuffix(entry.Name(), ".refresh.lock") {
+			return nil
+		}
+		data, readErr := os.ReadFile(path)
+		if readErr == nil {
+			combined.Write(data)
+		}
+		return nil
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	return combined.String()
 }
 
 func TestTopLevelStaticNavigationAllowsBrowserEntryButProtectsAPI(t *testing.T) {
@@ -614,5 +653,205 @@ func TestDownloadAssetRequiresAuthorizationAndDoesNotExposePaths(t *testing.T) {
 	data, _ := io.ReadAll(audio.Result().Body)
 	if audio.Code != 200 || string(data) != "ID3test-audio" {
 		t.Fatal("managed file download failed")
+	}
+}
+
+func apiKey(t *testing.T, gateway *Gateway) (string, string) {
+	t.Helper()
+	cookie, csrf := adminLogin(t, gateway)
+	response := adminRequest(gateway, cookie, csrf, "POST", "/admin/api/keys", `{"label":"test app"}`)
+	if response.Code != 201 {
+		t.Fatalf("key creation failed: %d %s", response.Code, response.Body.String())
+	}
+	var body struct {
+		ID  string `json:"id"`
+		Key string `json:"key"`
+	}
+	if err := json.Unmarshal(response.Body.Bytes(), &body); err != nil || body.Key == "" || body.ID == "" {
+		t.Fatal("key response missing values")
+	}
+	return body.ID, body.Key
+}
+
+func publicRequest(method, path, body, key string) *http.Request {
+	request := request(method, path, body)
+	request.Header.Set("Authorization", "Bearer "+key)
+	return request
+}
+
+func TestSunoStyleAPIUsesNativeFieldsAndReturnsClips(t *testing.T) {
+	fixture := newFixture(t)
+	one := fixture.add(t, "one")
+	_, key := apiKey(t, fixture.gateway)
+	response := httptest.NewRecorder()
+	fixture.gateway.ServeHTTP(response, publicRequest("POST", "/api/generate", `{"gpt_description_prompt":"calm piano at dawn","mv":"v6-mini","make_instrumental":true,"batch_size":1}`, key))
+	if response.Code != 200 {
+		t.Fatalf("suno generate failed: %d %s", response.Code, response.Body.String())
+	}
+	var result struct {
+		ID             string          `json:"id"`
+		JobID          string          `json:"job_id"`
+		Status         string          `json:"status"`
+		RequestedModel string          `json:"requested_model"`
+		Clips          []generate.Clip `json:"clips"`
+	}
+	if err := json.Unmarshal(response.Body.Bytes(), &result); err != nil {
+		t.Fatal(err)
+	}
+	if result.JobID == "" || result.RequestedModel != "chirp-goose" || len(result.Clips) != 1 || result.Clips[0].ID != testClip {
+		t.Fatalf("unexpected suno response: %s", response.Body.String())
+	}
+	client := fixture.clients[one.ID]
+	if !client.lastRequest.Instrumental || client.lastRequest.Custom || client.lastRequest.Prompt != "calm piano at dawn" {
+		t.Fatalf("suno request was translated incorrectly: %#v", client.lastRequest)
+	}
+	feed := httptest.NewRecorder()
+	fixture.gateway.ServeHTTP(feed, publicRequest("GET", "/api/feed?ids="+testClip, "", key))
+	if feed.Code != 200 || !strings.Contains(feed.Body.String(), `"clips"`) || !strings.Contains(feed.Body.String(), testClip) {
+		t.Fatalf("suno feed failed: %d %s", feed.Code, feed.Body.String())
+	}
+	billing := httptest.NewRecorder()
+	fixture.gateway.ServeHTTP(billing, publicRequest("GET", "/api/billing", "", key))
+	if billing.Code != 200 || !strings.Contains(billing.Body.String(), `"total_credits_left":20`) {
+		t.Fatalf("suno billing failed: %d %s", billing.Code, billing.Body.String())
+	}
+}
+
+func TestSunoStyleCustomInstrumentalNeverSendsDescriptionAsLyrics(t *testing.T) {
+	fixture := newFixture(t)
+	one := fixture.add(t, "one")
+	_, key := apiKey(t, fixture.gateway)
+	response := httptest.NewRecorder()
+	fixture.gateway.ServeHTTP(response, publicRequest("POST", "/api/generate", `{"prompt":"a rainy morning","tags":"ambient piano","title":"Rain","make_instrumental":true,"metadata":{"create_mode":"custom"},"mv":"v6-mini"}`, key))
+	if response.Code != 200 {
+		t.Fatalf("custom instrumental failed: %d %s", response.Code, response.Body.String())
+	}
+	request := fixture.clients[one.ID].lastRequest
+	if request.Prompt != "" || request.Lyrics != "" || request.Style != "ambient piano" || !request.Instrumental || !request.Custom {
+		t.Fatalf("custom instrumental reused the description as lyrics: %#v", request)
+	}
+}
+
+func TestOpenAIStyleAPIListsModelsAndReturnsGeneratedAudio(t *testing.T) {
+	fixture := newFixture(t)
+	_ = fixture.add(t, "one")
+	_, key := apiKey(t, fixture.gateway)
+	models := httptest.NewRecorder()
+	fixture.gateway.ServeHTTP(models, publicRequest("GET", "/v1/models", "", key))
+	if models.Code != 200 || !strings.Contains(models.Body.String(), `"object":"list"`) || !strings.Contains(models.Body.String(), "v6-mini") {
+		t.Fatalf("openai model list failed: %d %s", models.Code, models.Body.String())
+	}
+	response := httptest.NewRecorder()
+	fixture.gateway.ServeHTTP(response, publicRequest("POST", "/v1/audio/generations", `{"model":"v6-mini","prompt":"warm piano","n":1}`, key))
+	if response.Code != 200 {
+		t.Fatalf("openai generation failed: %d %s", response.Code, response.Body.String())
+	}
+	var created struct {
+		ID     string `json:"id"`
+		Object string `json:"object"`
+		Status string `json:"status"`
+		Data   []struct {
+			ID string `json:"id"`
+		} `json:"data"`
+	}
+	if err := json.Unmarshal(response.Body.Bytes(), &created); err != nil {
+		t.Fatal(err)
+	}
+	if created.Object != "audio.generation" || created.Status != "processing" || len(created.Data) != 1 || created.Data[0].ID != testClip {
+		t.Fatalf("unexpected openai generation response: %s", response.Body.String())
+	}
+	query := httptest.NewRecorder()
+	fixture.gateway.ServeHTTP(query, publicRequest("GET", "/v1/audio/generations/"+created.ID, "", key))
+	if query.Code != 200 || !strings.Contains(query.Body.String(), `"status":"completed"`) || !strings.Contains(query.Body.String(), "signed.invalid") {
+		t.Fatalf("openai generation query failed: %d %s", query.Code, query.Body.String())
+	}
+}
+
+func TestAPIStyleGatesRouteFamilies(t *testing.T) {
+	factory := func(config AccountClientConfig) (AccountClient, error) {
+		return &fakeClient{config: config, runStarted: make(chan struct{}), runStopped: make(chan struct{})}, nil
+	}
+	for _, tc := range []struct {
+		style   string
+		method  string
+		path    string
+		body    string
+		allowed bool
+	}{
+		{"suno", "GET", "/api/models", "", true},
+		{"suno", "GET", "/v1/models", "", false},
+		{"openai", "GET", "/v1/models", "", true},
+		{"openai", "POST", "/api/generate", `{"prompt":"x"}`, false},
+	} {
+		gateway, err := New(Config{DataDir: t.TempDir(), AdminKey: testAdminKey, APIStyle: tc.style, AccountClientFactory: factory})
+		if err != nil {
+			t.Fatal(err)
+		}
+		secret := "style-gate-test-key-123456"
+		gateway.mu.Lock()
+		gateway.state.Keys["gate"] = &keyRecord{APIKeyView: APIKeyView{ID: "gate", Label: "gate", Prefix: secret[:8], CreatedAt: time.Now()}, Hash: digest(secret)}
+		gateway.mu.Unlock()
+		response := httptest.NewRecorder()
+		gateway.ServeHTTP(response, publicRequest(tc.method, tc.path, tc.body, secret))
+		gateway.Close()
+		if tc.allowed && response.Code == 404 {
+			t.Fatalf("style %s unexpectedly hid %s", tc.style, tc.path)
+		}
+		if !tc.allowed && response.Code != 404 {
+			t.Fatalf("style %s did not hide %s: %d", tc.style, tc.path, response.Code)
+		}
+	}
+}
+
+func TestStorageUsesPerRecordFilesAndMigratesLegacyMetadata(t *testing.T) {
+	fixture := newFixture(t)
+	one := fixture.add(t, "one")
+	keyID, _ := apiKey(t, fixture.gateway)
+	if _, err := os.Stat(filepath.Join(fixture.gateway.dataDir, "metadata.json")); !os.IsNotExist(err) {
+		t.Fatal("new gateway still writes a monolithic metadata.json")
+	}
+	for _, path := range []string{fixture.gateway.accountRecordPath(one.ID), fixture.gateway.credentialPath(one.ID), fixture.gateway.keyPath(keyID)} {
+		if _, err := os.Stat(path); err != nil {
+			t.Fatalf("per-record file missing %s: %v", path, err)
+		}
+	}
+	var stored accountRecord
+	if err := readJSON(fixture.gateway.accountRecordPath(one.ID), &stored); err != nil || stored.Name != "one" || stored.IdentityHash == "" {
+		t.Fatalf("account record did not round-trip: %v", err)
+	}
+
+	root := t.TempDir()
+	accountID := "legacy-account"
+	if err := os.MkdirAll(filepath.Join(root, "accounts", accountID), 0700); err != nil {
+		t.Fatal(err)
+	}
+	cookie := cookieFixture("legacy", "legacy-session")
+	if err := os.WriteFile(filepath.Join(root, "accounts", accountID, "session.cookie"), []byte(cookie), 0600); err != nil {
+		t.Fatal(err)
+	}
+	legacy := persistent{Version: 1, Accounts: map[string]*accountRecord{accountID: {AccountView: AccountView{ID: accountID, Name: "Legacy", Enabled: false, Weight: 1, MaxConcurrency: 1, Protocol: "web", Model: "v6-mini", CreatedAt: time.Now().UTC(), UpdatedAt: time.Now().UTC()}, IdentityHash: credentialIdentity(cookie)}}, Jobs: map[string]*JobView{}, Keys: map[string]*keyRecord{}, Files: map[string]*fileRecord{}}
+	data, _ := json.Marshal(legacy)
+	if err := os.WriteFile(filepath.Join(root, "metadata.json"), data, 0600); err != nil {
+		t.Fatal(err)
+	}
+	factory := func(config AccountClientConfig) (AccountClient, error) {
+		return &fakeClient{config: config, runStarted: make(chan struct{}), runStopped: make(chan struct{})}, nil
+	}
+	migrated, err := New(Config{DataDir: root, AdminKey: testAdminKey, AccountClientFactory: factory})
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer migrated.Close()
+	if migrated.state.Accounts[accountID] == nil || migrated.state.Accounts[accountID].Name != "Legacy" {
+		t.Fatal("legacy account was not migrated")
+	}
+	if _, err := os.Stat(filepath.Join(root, "metadata.json.migrated")); err != nil {
+		t.Fatal("legacy metadata was not retired")
+	}
+	if _, err := os.Stat(filepath.Join(root, "accounts", accountID, "account.json")); err != nil {
+		t.Fatal("migrated account record was not written")
+	}
+	if migrated.accounts[accountID] == nil {
+		t.Fatal("disabled migrated account lost its maintenance runtime")
 	}
 }

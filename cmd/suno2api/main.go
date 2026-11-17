@@ -12,6 +12,7 @@ import (
 	"os"
 	"os/signal"
 	"path/filepath"
+	"strconv"
 	"strings"
 	"syscall"
 	"time"
@@ -32,11 +33,13 @@ type diskConfig struct {
 	Proxy               string `json:"proxy"`
 	DownloadDir         string `json:"download_dir"`
 	Listen              string `json:"listen"`
+	RequestTimeout      string `json:"request_timeout,omitempty"`
 	AutoRefresh         *bool  `json:"auto_refresh,omitempty"`
 	RefreshBefore       string `json:"refresh_before,omitempty"`
 	GatewayDataDir      string `json:"gateway_data_dir,omitempty"`
 	GatewayListen       string `json:"gateway_listen,omitempty"`
 	GatewayAdminKeyFile string `json:"gateway_admin_key_file,omitempty"`
+	GatewayAPIStyle     string `json:"gateway_api_style,omitempty"`
 }
 
 type commonFlags struct {
@@ -61,9 +64,16 @@ func main() {
 }
 
 func run(arguments []string) error {
-	if len(arguments) == 0 || arguments[0] == "help" || arguments[0] == "--help" || arguments[0] == "-h" {
+	if len(arguments) > 0 && (arguments[0] == "help" || arguments[0] == "--help" || arguments[0] == "-h") {
 		printHelp()
 		return nil
+	}
+	// The binary is a gateway web application by default; explicit commands remain available.
+	if len(arguments) == 0 {
+		arguments = []string{"gateway"}
+	} else if strings.HasPrefix(arguments[0], "-") {
+		// Allow "suno2api --listen ..." as the gateway command.
+		arguments = append([]string{"gateway"}, arguments...)
 	}
 	command := arguments[0]
 	arguments = arguments[1:]
@@ -72,7 +82,21 @@ func run(arguments []string) error {
 		command = "download"
 	}
 	configPath := optionValue(arguments, "config")
+	if configPath == "" {
+		configPath = strings.TrimSpace(os.Getenv("SUNO_CONFIG"))
+	}
 	configuration, actualConfig, err := readConfig(configPath)
+	if err != nil {
+		return err
+	}
+	envFile, err := loadEnvFile(optionValue(arguments, "env-file"), actualConfig)
+	if err != nil {
+		return err
+	}
+	if err := applyEnvironment(&configuration); err != nil {
+		return err
+	}
+	requestTimeout, err := configuredTimeout(configuration.RequestTimeout)
 	if err != nil {
 		return err
 	}
@@ -99,7 +123,8 @@ func run(arguments []string) error {
 	flags.StringVar(&common.authCookieFile, "auth-cookie-file", configuration.AuthCookieFile, "optional Cookie file from your own Suno authentication service session")
 	flags.StringVar(&common.proxy, "proxy", configuration.Proxy, "HTTP/HTTPS/SOCKS proxy URL, or direct")
 	flags.StringVar(&common.configPath, "config", actualConfig, "local JSON configuration file")
-	flags.DurationVar(&common.timeout, "timeout", 10*time.Minute, "maximum operation time")
+	flags.StringVar(&envFile, "env-file", envFile, "optional .env file; defaults to .env beside the configuration file or executable")
+	flags.DurationVar(&common.timeout, "timeout", requestTimeout, "maximum operation time")
 	flags.BoolVar(&common.authorize, "authorize-download", false, "allow an explicit Suno download authorization request, which may consume quota")
 	flags.BoolVar(&common.autoRefresh, "auto-refresh", autoRefresh, "refresh an eligible Cookie file shortly before session expiry")
 	flags.DurationVar(&common.refreshBefore, "refresh-before", refreshBefore, "refresh this long before session expiry")
@@ -179,8 +204,8 @@ func run(arguments []string) error {
 		var request generate.Request
 		wait, save := true, false
 		lyricsFile, output := "", ""
-		flags.StringVar(&request.Prompt, "prompt", "", "song description, or custom lyrics when --custom is used")
-		flags.StringVar(&request.Lyrics, "lyrics", "", "custom lyrics")
+		flags.StringVar(&request.Prompt, "prompt", "", "song description for simple mode; custom mode uses --lyrics and --style")
+		flags.StringVar(&request.Lyrics, "lyrics", "", "custom lyrics; enables custom mode")
 		flags.StringVar(&lyricsFile, "lyrics-file", "", "UTF-8 lyrics text file")
 		flags.StringVar(&request.Style, "style", "", "custom musical style")
 		flags.StringVar(&request.Title, "title", "", "custom song title")
@@ -191,7 +216,7 @@ func run(arguments []string) error {
 		flags.StringVar(&request.Model, "model", modelDefault, "model key or v6-mini alias; default v6-mini/chirp-goose")
 		flags.StringVar(&request.CaptchaToken, "captcha-token", "", "verification token provided by your completed Suno verification")
 		flags.BoolVar(&request.Instrumental, "instrumental", false, "generate instrumental music")
-		flags.BoolVar(&request.Custom, "custom", false, "use custom mode")
+		flags.BoolVar(&request.Custom, "custom", false, "use custom mode; requires --lyrics, or --style for an instrumental song")
 		flags.IntVar(&request.BatchSize, "batch-size", 2, "Android requested batch size: 1 or 2; web uses Suno's own batch default")
 		flags.BoolVar(&wait, "wait", true, "wait for generated songs to complete")
 		flags.BoolVar(&save, "download", false, "download completed songs")
@@ -470,15 +495,7 @@ func createClients(common commonFlags) (clients, error) {
 func readConfig(explicit string) (diskConfig, string, error) {
 	path := explicit
 	if path == "" {
-		path = "config.local.json"
-		if _, err := os.Stat(path); errors.Is(err, os.ErrNotExist) {
-			if executable, err := os.Executable(); err == nil {
-				sibling := filepath.Join(filepath.Dir(executable), "config.local.json")
-				if _, err := os.Stat(sibling); err == nil {
-					path = sibling
-				}
-			}
-		}
+		path = defaultConfigPath()
 	}
 	data, err := readSmallFile(path, 64<<10)
 	if errors.Is(err, os.ErrNotExist) && explicit == "" {
@@ -511,6 +528,141 @@ func readConfig(explicit string) (diskConfig, string, error) {
 		configuration.GatewayAdminKeyFile = filepath.Join(directory, configuration.GatewayAdminKeyFile)
 	}
 	return configuration, path, nil
+}
+
+func defaultConfigPath() string {
+	names := []string{"config.local.json", "config.json"}
+	directories := []string{"."}
+	if executable, err := os.Executable(); err == nil {
+		directories = append(directories, filepath.Dir(executable))
+	}
+	for _, directory := range directories {
+		for _, name := range names {
+			path := filepath.Join(directory, name)
+			if info, err := os.Stat(path); err == nil && !info.IsDir() {
+				return path
+			}
+		}
+	}
+	return "config.local.json"
+}
+
+// loadEnvFile applies KEY=VALUE entries from a .env file without overwriting
+// variables that are already set in the process environment.
+func loadEnvFile(explicit, configPath string) (string, error) {
+	candidates := []string{}
+	if explicit != "" {
+		candidates = append(candidates, explicit)
+	} else {
+		candidates = append(candidates, ".env")
+		if configPath != "" {
+			candidates = append(candidates, filepath.Join(filepath.Dir(configPath), ".env"))
+		}
+		if executable, err := os.Executable(); err == nil {
+			candidates = append(candidates, filepath.Join(filepath.Dir(executable), ".env"))
+		}
+	}
+	for _, path := range candidates {
+		info, err := os.Stat(path)
+		if err != nil || info.IsDir() {
+			continue
+		}
+		values, err := parseEnvFile(path)
+		if err != nil {
+			return "", err
+		}
+		for key, value := range values {
+			if _, exists := os.LookupEnv(key); !exists {
+				if err := os.Setenv(key, value); err != nil {
+					return "", err
+				}
+			}
+		}
+		return path, nil
+	}
+	if explicit != "" {
+		return "", errors.New("cannot read the requested .env file")
+	}
+	return "", nil
+}
+
+func parseEnvFile(path string) (map[string]string, error) {
+	data, err := readSmallFile(path, 256<<10)
+	if err != nil {
+		return nil, errors.New("cannot read .env configuration")
+	}
+	values := make(map[string]string)
+	for _, line := range strings.Split(strings.TrimPrefix(string(data), "\ufeff"), "\n") {
+		line = strings.TrimSpace(strings.TrimSuffix(line, "\r"))
+		if line == "" || strings.HasPrefix(line, "#") {
+			continue
+		}
+		line = strings.TrimPrefix(line, "export ")
+		key, value, ok := strings.Cut(line, "=")
+		if !ok {
+			continue
+		}
+		key = strings.TrimSpace(key)
+		if key == "" || strings.ContainsAny(key, " \t") {
+			continue
+		}
+		value = strings.TrimSpace(value)
+		if len(value) >= 2 && ((value[0] == '"' && value[len(value)-1] == '"') || (value[0] == '\'' && value[len(value)-1] == '\'')) {
+			quote := value[0]
+			value = value[1 : len(value)-1]
+			if quote == '"' {
+				value = strings.NewReplacer(`\n`, "\n", `\r`, "\r", `\t`, "\t", `\"`, `"`).Replace(value)
+			}
+		} else if index := strings.Index(value, " #"); index >= 0 {
+			value = strings.TrimSpace(value[:index])
+		}
+		values[key] = value
+	}
+	return values, nil
+}
+
+func applyEnvironment(configuration *diskConfig) error {
+	apply := func(key string, target *string) {
+		if value, ok := os.LookupEnv(key); ok && strings.TrimSpace(value) != "" {
+			*target = strings.TrimSpace(value)
+		}
+	}
+	apply("SUNO_PROTOCOL", &configuration.Protocol)
+	apply("SUNO_MODEL", &configuration.Model)
+	apply("SUNO_TOKEN_FILE", &configuration.TokenFile)
+	apply("SUNO_AUTH_COOKIE_FILE", &configuration.AuthCookieFile)
+	apply("SUNO_PROXY", &configuration.Proxy)
+	apply("SUNO_DOWNLOAD_DIR", &configuration.DownloadDir)
+	apply("SUNO_LISTEN", &configuration.Listen)
+	apply("SUNO_REFRESH_BEFORE", &configuration.RefreshBefore)
+	apply("SUNO_REQUEST_TIMEOUT", &configuration.RequestTimeout)
+	apply("SUNO_GATEWAY_LISTEN", &configuration.GatewayListen)
+	apply("SUNO_GATEWAY_DATA_DIR", &configuration.GatewayDataDir)
+	apply("SUNO_GATEWAY_ADMIN_KEY_FILE", &configuration.GatewayAdminKeyFile)
+	if _, ok := os.LookupEnv("SUNO_GATEWAY_API_STYLE"); ok {
+		apply("SUNO_GATEWAY_API_STYLE", &configuration.GatewayAPIStyle)
+	} else {
+		apply("SUNO_API_STYLE", &configuration.GatewayAPIStyle)
+	}
+	if value, ok := os.LookupEnv("SUNO_AUTO_REFRESH"); ok && strings.TrimSpace(value) != "" {
+		parsed, err := strconv.ParseBool(strings.TrimSpace(value))
+		if err != nil {
+			return errors.New("SUNO_AUTO_REFRESH must be true or false")
+		}
+		configuration.AutoRefresh = &parsed
+	}
+	return nil
+}
+
+func configuredTimeout(value string) (time.Duration, error) {
+	if strings.TrimSpace(value) == "" {
+		return 10 * time.Minute, nil
+	}
+	duration, err := time.ParseDuration(strings.TrimSpace(value))
+	if err != nil || duration <= 0 {
+		return 0, errors.New("request_timeout must be a positive duration, for example 10m")
+	}
+	return duration, nil
 }
 
 func readSmallFile(path string, limit int64) ([]byte, error) {
@@ -628,8 +780,14 @@ func writeSubmittedResponse(writer io.Writer, response generate.Response) error 
 }
 
 func printHelp() {
-	fmt.Print(`suno2api - Suno share download and song generation
+	fmt.Print(`suno2api - Suno gateway web application, download and song generation
 
+  suno2api
+      Start the gateway web application (same as "suno2api gateway").
+      Default address: http://127.0.0.1:8080
+
+  suno2api gateway [--listen 127.0.0.1:8080] [--data-dir data/gateway] [--api-style suno|openai|both]
+  suno2api gateway --import-current [--token-file session.token] [--auth-cookie-file auth.cookie]
   suno2api "https://suno.com/s/SHARE_CODE"
   suno2api download URL [-o downloads/] [--token-file session.token]
   suno2api generate --prompt "gentle piano" --instrumental --batch-size 1
@@ -638,15 +796,20 @@ func printHelp() {
   suno2api billing
   suno2api check-captcha
   suno2api serve [--listen 127.0.0.1:8080]
-  suno2api gateway [--listen 127.0.0.1:8080] [--data-dir data/gateway]
-  suno2api gateway --import-current [--token-file session.token] [--auth-cookie-file auth.cookie]
-  suno2api session status [--token-file session.token]
-  suno2api session refresh [--token-file session.token]
-  suno2api session keepalive [--token-file session.token]
+  suno2api session status|refresh|keepalive [--token-file session.token]
 
-Common options: --config, --token-file, --protocol, --device-id, --proxy, --timeout.
+Configuration: config.local.json or config.json plus an optional .env file.
+Relative paths in the JSON file are resolved against that file.
+Environment variables: SUNO_GATEWAY_LISTEN, SUNO_GATEWAY_DATA_DIR,
+SUNO_GATEWAY_API_STYLE, SUNO_MODEL, SUNO_PROXY, SUNO_TOKEN_FILE,
+SUNO_AUTH_COOKIE_FILE, SUNO_REQUEST_TIMEOUT, SUNO_ADMIN_KEY.
+
+Common options: --config, --env-file, --token-file, --protocol, --device-id,
+--proxy, --timeout.
 Session options: --auto-refresh=true|false, --refresh-before 60s, --auth-cookie-file.
-Gateway options: --data-dir, --admin-key-file, --import-current. SUNO_ADMIN_KEY overrides the generated admin key.
+Gateway options: --data-dir, --admin-key-file, --api-style, --import-current.
+SUNO_ADMIN_KEY overrides the generated administrator key.
+API styles: suno serves /api/*, openai serves /v1/*, both serves both.
 Keepalive runs until Ctrl+C; --timeout does not limit its overall lifetime.
 Use COMMAND --help to show command options. Generation uses your Suno credits.
 `)

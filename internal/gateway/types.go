@@ -32,6 +32,7 @@ type Config struct {
 	DownloadDir          string
 	RequestTimeout       time.Duration
 	DefaultModel         string
+	APIStyle             string
 	WebHandler           http.Handler
 	AccountClientFactory AccountClientFactory
 }

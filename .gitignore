@@ -7,3 +7,6 @@
 /config.local.json
 *.token
 *.cookie
+
+/.playwright-mcp/
+/.workbuddy/

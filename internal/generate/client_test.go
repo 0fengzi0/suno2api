@@ -94,6 +94,30 @@ func TestCustomPayloadUsesLyricsAndStyle(t *testing.T) {
 	}
 }
 
+func TestInstrumentalAndDescriptionNeverBecomeLyrics(t *testing.T) {
+	client := &Client{}
+	payload, err := client.payload(Request{Prompt: "rainy morning guitar", Style: "acoustic folk", Title: "Morning", Instrumental: true, Model: "v6-mini"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if payload.Metadata.CreateMode != "simple" || payload.Prompt != "" || payload.Description != "rainy morning guitar" || !payload.Instrumental || payload.Tags != "" || payload.Title != "" {
+		t.Fatalf("a simple instrumental request was turned into custom lyrics: %#v", payload)
+	}
+	payload, err = client.payload(Request{Prompt: "rainy morning guitar", Style: "ambient", Custom: true, Instrumental: true, Model: "v6-mini"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if payload.Prompt != "" || payload.Tags != "ambient" || payload.Description != "" || !payload.Instrumental {
+		t.Fatalf("instrumental custom mode reused the description as lyrics: %#v", payload)
+	}
+	if _, err := client.payload(Request{Prompt: "song description", Custom: true, Model: "v6-mini"}); err == nil {
+		t.Fatal("custom vocal mode accepted a description without lyrics")
+	}
+	if _, err := client.payload(Request{Custom: true, Instrumental: true, Model: "v6-mini"}); err == nil {
+		t.Fatal("instrumental custom mode accepted an empty style")
+	}
+}
+
 func TestMiniAliasAndRequestedIDsExcludeOtherModels(t *testing.T) {
 	client := &Client{}
 	payload, err := client.payload(Request{Prompt: "piano", Model: "v6-mini"})

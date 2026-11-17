@@ -34,12 +34,26 @@ func (gateway *Gateway) routes() {
 	gateway.mux.HandleFunc("POST /admin/api/jobs", gateway.generateHTTP)
 	gateway.mux.HandleFunc("POST /admin/api/downloads", gateway.downloadJSON)
 	gateway.mux.HandleFunc("GET /admin/api/downloads/{id}/audio", gateway.fileHTTP)
-	gateway.mux.HandleFunc("POST /api/generate", gateway.generateHTTP)
-	gateway.mux.HandleFunc("GET /api/jobs", gateway.listJobs)
-	gateway.mux.HandleFunc("GET /api/jobs/{id}", gateway.getJobHTTP)
-	gateway.mux.HandleFunc("GET /api/songs", gateway.songsHTTP)
-	gateway.mux.HandleFunc("GET /download", gateway.downloadFileHTTP)
+	if gateway.config.APIStyle != "openai" {
+		gateway.mux.HandleFunc("POST /api/generate", gateway.sunoGenerateHTTP)
+		gateway.mux.HandleFunc("GET /api/feed", gateway.sunoFeedHTTP)
+		gateway.mux.HandleFunc("POST /api/feed", gateway.sunoFeedHTTP)
+		gateway.mux.HandleFunc("GET /api/clips/{id}", gateway.sunoClipHTTP)
+		gateway.mux.HandleFunc("GET /api/billing", gateway.sunoBillingHTTP)
+		gateway.mux.HandleFunc("GET /api/models", gateway.sunoModelsHTTP)
+		gateway.mux.HandleFunc("GET /api/jobs", gateway.listJobs)
+		gateway.mux.HandleFunc("GET /api/jobs/{id}", gateway.getJobHTTP)
+		gateway.mux.HandleFunc("GET /api/songs", gateway.songsHTTP)
+	}
+	if gateway.config.APIStyle != "suno" {
+		gateway.mux.HandleFunc("GET /v1/models", gateway.openAIModelsHTTP)
+		gateway.mux.HandleFunc("GET /v1/models/{id}", gateway.openAIModelHTTP)
+		gateway.mux.HandleFunc("POST /v1/audio/generations", gateway.openAIGenerateHTTP)
+		gateway.mux.HandleFunc("GET /v1/audio/generations/{id}", gateway.openAIGenerationHTTP)
+		gateway.mux.HandleFunc("GET /v1/audio/generations/{id}/content", gateway.openAIContentHTTP)
+	}
 	gateway.mux.HandleFunc("POST /api/download", gateway.downloadJSON)
+	gateway.mux.HandleFunc("GET /download", gateway.downloadFileHTTP)
 	gateway.mux.HandleFunc("GET /api/downloads/{id}/audio", gateway.fileHTTP)
 }
 
@@ -70,7 +84,7 @@ func (gateway *Gateway) overview(writer http.ResponseWriter, request *http.Reque
 			inflight += runtime.inflight
 		}
 	}
-	writeJSON(writer, 200, map[string]any{"accounts": gateway.accountViewsLocked(), "jobs": gateway.jobViewsLocked(), "keys": gateway.keyViewsLocked(), "stats": map[string]int{"accounts": len(gateway.state.Accounts), "enabled_accounts": enabled, "jobs": len(gateway.state.Jobs), "inflight": inflight}})
+	writeJSON(writer, 200, map[string]any{"accounts": gateway.accountViewsLocked(), "jobs": gateway.jobViewsLocked(), "keys": gateway.keyViewsLocked(), "api_style": gateway.config.APIStyle, "stats": map[string]int{"accounts": len(gateway.state.Accounts), "enabled_accounts": enabled, "jobs": len(gateway.state.Jobs), "inflight": inflight}})
 }
 func (gateway *Gateway) listAccounts(writer http.ResponseWriter, request *http.Request) {
 	gateway.mu.Lock()
@@ -122,7 +136,7 @@ func (gateway *Gateway) deleteAccountHTTP(writer http.ResponseWriter, request *h
 		runtime.cancel()
 		delete(gateway.accounts, id)
 	}
-	if gateway.persistLocked() != nil {
+	if gateway.persistAccountLocked(id) != nil {
 		writeError(writer, 500, "storage_error", "账号归档保存失败")
 		return
 	}
@@ -140,7 +154,11 @@ func (gateway *Gateway) restoreAccountHTTP(writer http.ResponseWriter, request *
 	record.Enabled = false
 	record.State = "disabled"
 	record.UpdatedAt = time.Now().UTC()
-	if gateway.persistLocked() != nil {
+	if err := gateway.buildAccountLocked(record.ID); err != nil {
+		record.State = "configuration_error"
+		record.LastError = "账号客户端不可用"
+	}
+	if gateway.persistAccountLocked(record.ID) != nil {
 		writeError(writer, 500, "storage_error", "恢复保存失败")
 		return
 	}
@@ -156,7 +174,7 @@ func (gateway *Gateway) accountForOperation(id string) (*runtimeAccount, error) 
 		return nil, errors.New("account not found")
 	}
 	if runtime == nil {
-		return nil, errors.New("account disabled")
+		return nil, errors.New("account runtime unavailable")
 	}
 	return runtime, nil
 }
@@ -164,7 +182,7 @@ func (gateway *Gateway) checkAccountHTTP(writer http.ResponseWriter, request *ht
 	id := request.PathValue("id")
 	runtime, err := gateway.accountForOperation(id)
 	if err != nil {
-		writeError(writer, 409, "account_unavailable", "请先启用账号")
+		writeError(writer, 409, "account_unavailable", "账号客户端不可用，请检查凭据后重试")
 		return
 	}
 	ctx, cancel := accountContext(request.Context(), runtime, time.Minute)
@@ -188,14 +206,14 @@ func (gateway *Gateway) checkAccountHTTP(writer http.ResponseWriter, request *ht
 		record.LastError = ""
 		record.Billing = &BillingView{Credits: billing.Credits, TotalCreditsLeft: billing.TotalCreditsLeft, Models: billing.Models}
 	}
-	_ = gateway.persistLocked()
+	_ = gateway.persistAccountLocked(id)
 	writeJSON(writer, 200, map[string]any{"account": gateway.viewAccountLocked(id)})
 }
 func (gateway *Gateway) refreshAccountHTTP(writer http.ResponseWriter, request *http.Request) {
 	id := request.PathValue("id")
 	runtime, err := gateway.accountForOperation(id)
 	if err != nil {
-		writeError(writer, 409, "account_unavailable", "请先启用账号")
+		writeError(writer, 409, "account_unavailable", "账号客户端不可用，请检查凭据后重试")
 		return
 	}
 	ctx, cancel := accountContext(request.Context(), runtime, time.Minute)
@@ -216,7 +234,7 @@ func (gateway *Gateway) refreshAccountHTTP(writer http.ResponseWriter, request *
 		record.LastError = ""
 		record.State = "ready"
 	}
-	_ = gateway.persistLocked()
+	_ = gateway.persistAccountLocked(id)
 	if err != nil {
 		writeJSON(writer, 502, map[string]any{"error": record.LastError, "code": "refresh_failed", "account": gateway.viewAccountLocked(id)})
 		return
@@ -263,7 +281,7 @@ func (gateway *Gateway) createKey(writer http.ResponseWriter, request *http.Requ
 	record := &keyRecord{APIKeyView: APIKeyView{ID: id, Label: body.Label, Prefix: secret[:12], CreatedAt: time.Now().UTC()}, Hash: digest(secret)}
 	gateway.mu.Lock()
 	gateway.state.Keys[id] = record
-	err = gateway.persistLocked()
+	err = gateway.persistKeyLocked(id)
 	gateway.mu.Unlock()
 	if err != nil {
 		writeError(writer, 500, "storage_error", "密钥保存失败")
@@ -280,7 +298,7 @@ func (gateway *Gateway) revokeKey(writer http.ResponseWriter, request *http.Requ
 		return
 	}
 	key.Revoked = true
-	if gateway.persistLocked() != nil {
+	if gateway.persistKeyLocked(key.ID) != nil {
 		writeError(writer, 500, "storage_error", "密钥已在当前进程停用，但持久化失败，请修复存储后重试")
 		return
 	}
@@ -307,6 +325,26 @@ func decodeJSON(writer http.ResponseWriter, request *http.Request, destination a
 	}
 	return true
 }
+func decodeJSONLenient(writer http.ResponseWriter, request *http.Request, destination any) bool {
+	mediaType, _, err := mime.ParseMediaType(request.Header.Get("Content-Type"))
+	if err != nil || mediaType != "application/json" {
+		writeError(writer, 415, "json_required", "请使用application/json")
+		return false
+	}
+	request.Body = http.MaxBytesReader(writer, request.Body, 256<<10)
+	decoder := json.NewDecoder(request.Body)
+	if decoder.Decode(destination) != nil {
+		writeError(writer, 400, "invalid_json", "JSON无效或超过256KiB")
+		return false
+	}
+	var extra any
+	if err := decoder.Decode(&extra); !errors.Is(err, io.EOF) {
+		writeError(writer, 400, "invalid_json", "只接受一个JSON对象")
+		return false
+	}
+	return true
+}
+
 func writeJSON(writer http.ResponseWriter, status int, value any) {
 	writer.Header().Set("Content-Type", "application/json; charset=utf-8")
 	writer.WriteHeader(status)

@@ -2,3 +2,8 @@
 :root{--ui-archive:1}.table-filters{display:flex;gap:16px;align-items:center}.archive-filter{display:flex;align-items:center;gap:6px;margin:0;white-space:nowrap;color:#7d91a7;font-size:10px;font-weight:400}.archive-filter input{width:13px;height:13px;min-height:13px;accent-color:var(--blue)}@media(max-width:650px){.table-filters{gap:9px}.archive-filter{font-size:9px}.search-box{width:130px}}
 :root{--ui-csp:1}.concurrency-line i.usage-empty{width:0}.concurrency-line i.usage-partial{width:50%}.concurrency-line i.usage-full{width:100%}
 :root{--ui-mobile:1}.mobile-only{display:none}@media(max-width:650px){.button.mobile-only{display:inline-flex}}
+
+.mode-tabs{display:flex;gap:4px;padding:4px;background:#eef3fa;border:1px solid var(--line);border-radius:10px;margin:2px 0 4px}
+.mode-tab{flex:1;border:0;background:transparent;color:var(--muted);border-radius:7px;padding:8px 10px;font-size:12px;font-weight:700}
+.mode-tab.active{background:#fff;color:var(--navy);box-shadow:0 1px 3px #102b4714}
+.mode-tab:focus-visible{outline:2px solid #8eafff;outline-offset:1px}

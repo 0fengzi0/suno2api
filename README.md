@@ -4,13 +4,15 @@
 
 默认生成模型为 **v6-mini**，对应实际接口参数 `mv: "chirp-goose"`，符合当前 Free 账号配置。输入 `--model v6-mini` 或 `--model chirp-goose` 等价，不会自动切换到 v6 付费模型。
 
-## 多账号网关与管理页面
+**不带参数直接运行二进制即启动多账号网关 Web 应用**，命令行子命令保留给脚本和排查使用。
+
+## 默认启动：多账号网关
 
 ```powershell
-.\dist\suno2api.exe gateway
+.\dist\suno2api.exe
 ```
 
-打开 `http://127.0.0.1:8080`。首次启动在 `data/gateway/admin.key` 生成管理员密钥，控制台只显示密钥文件的完整路径；在网页登录框输入文件中的密钥。管理员密钥、给调用方使用的网关 API 密钥、Suno 账号 Cookie 分别管理。账号和任务写入本机 `data/gateway/`，默认不会导入旧 Cookie 文件。
+等价于 `suno2api gateway`，默认打开 `http://127.0.0.1:8080`。首次启动在 `data/gateway/admin.key` 生成管理员密钥，控制台只显示密钥文件的完整路径；在网页登录框输入文件中的密钥。管理员密钥、给调用方使用的网关 API 密钥、Suno 账号 Cookie 分别管理。账号和任务写入本机 `data/gateway/`，默认不会导入旧 Cookie 文件，也不使用数据库。
 
 如需迁移当前配置指向的这个 Suno 账号，显式运行：
 
@@ -19,6 +21,29 @@
 ```
 
 导入只读取已指定的 `token_file` 与可选 `auth_cookie_file`，复制到网关自己的账号目录；重复导入同一会话会更新已有记录。Web 页面可添加更多账号、检查状态、管理调用密钥和查看任务。详细启动、密钥与接口说明见 [网关使用说明](docs/gateway.md)。
+
+公共 API 支持两种风格，启动参数 `--api-style suno|openai|both` 或配置项 `gateway_api_style` 控制：
+
+- **Suno 风格**（`/api/*`）：`POST /api/generate` 接受 `prompt`、`tags`、`title`、`mv`、`make_instrumental`、`metadata.create_mode` 等原生字段，返回 `clips` 数组；`GET /api/feed?ids=…` 查询歌曲，`GET /api/billing`、`GET /api/models` 查询额度与模型。
+- **OpenAI 风格**（`/v1/*`）：`GET /v1/models`、`POST /v1/audio/generations`、`GET /v1/audio/generations/{id}`、`GET /v1/audio/generations/{id}/content`，响应使用 `object`、`created`、`data` 等 OpenAI 约定字段。
+
+网关数据目录按记录拆分，便于直接查看和备份：
+
+```
+data/gateway/
+  admin.key
+  accounts/<账号ID>/account.json
+  accounts/<账号ID>/session.cookie
+  accounts/<账号ID>/auth.cookie
+  keys/<密钥ID>.json
+  jobs/<任务ID>.json
+  files/<文件ID>.json
+  downloads/
+```
+
+每个账号的会话独立保存为文件，不使用数据库。旧版 `metadata.json` 会在首次启动时自动拆分到上述文件并改名为 `metadata.json.migrated`。
+
+账号列表中的启用开关**只决定该账号是否参与新生成**。关闭后仍会正常检查余额、执行会话续期和后台保活；已有任务、歌曲查询和音频下载继续使用原账号。
 
 ## 直接使用
 
@@ -51,7 +76,7 @@ go build -o dist/suno2api.exe ./cmd/suno2api
 
 在多账号网关中，如果你只有认证 Cookie，也可单独填写；它必须同时含有效 `__session` 和 `ajs_anonymous_id`。缺少其中任一项时请再填写网站 Cookie。
 
-`config.local.json` 会自动读取，也可用 `--config` 指定其他配置文件。本工作目录已有仅含本地文件路径的忽略配置，指向本次提供的 `work/suno-session.token`。新环境可参照 `config.example.json` 创建自己的配置，不应把凭据文件放入代码交付包。
+配置可以来自 `config.local.json` / `config.json` 和 `.env` 文件，也可用 `--config`、`--env-file` 指定。优先级从高到低为：命令行参数、进程环境变量、`.env`、JSON 配置文件、内置默认值。JSON 中的相对路径相对于该配置文件解析；`.env` 和命令行中的相对路径相对于当前工作目录。示例见 `config.example.json` 与 `.env.example`。
 
 ```json
 {
@@ -61,9 +86,24 @@ go build -o dist/suno2api.exe ./cmd/suno2api
   "auto_refresh": true,
   "refresh_before": "60s",
   "download_dir": "downloads",
-  "listen": "127.0.0.1:8080"
+  "request_timeout": "10m",
+  "gateway_listen": "127.0.0.1:8080",
+  "gateway_data_dir": "data/gateway",
+  "gateway_api_style": "both"
 }
 ```
+
+```dotenv
+SUNO_GATEWAY_LISTEN=127.0.0.1:8080
+SUNO_GATEWAY_DATA_DIR=data/gateway
+SUNO_GATEWAY_API_STYLE=both
+SUNO_MODEL=v6-mini
+SUNO_REQUEST_TIMEOUT=10m
+# SUNO_PROXY=http://127.0.0.1:7890
+# SUNO_ADMIN_KEY=<至少32字符的管理员密钥>
+```
+
+常用环境变量：`SUNO_GATEWAY_LISTEN`、`SUNO_GATEWAY_DATA_DIR`、`SUNO_GATEWAY_API_STYLE`（或 `SUNO_API_STYLE`）、`SUNO_GATEWAY_ADMIN_KEY_FILE`、`SUNO_ADMIN_KEY`、`SUNO_MODEL`、`SUNO_PROTOCOL`、`SUNO_PROXY`、`SUNO_TOKEN_FILE`、`SUNO_AUTH_COOKIE_FILE`、`SUNO_REQUEST_TIMEOUT`、`SUNO_AUTO_REFRESH`、`SUNO_REFRESH_BEFORE`。不应把真实凭据文件放入代码交付包。
 
 代理优先顺序为 `--proxy`、`SUNO_PROXY`、标准 `HTTP_PROXY` / `HTTPS_PROXY`、`ALL_PROXY`，随后读取 Windows 当前用户已启用的系统代理。读取不会修改系统配置。支持 HTTP、HTTPS、SOCKS5；`--proxy direct` 可明确直连。输出只说明代理来源，不显示代理凭据。
 
@@ -114,7 +154,9 @@ go build -o dist/suno2api.exe ./cmd/suno2api
 
 每次生成前先调用安装包中的正规 `c/check` 检查；若要求验证且没有用户完成验证后取得的真实 token，程序会停止且不提交生成。可用 `check-captcha` 单独检查。用户应在 Suno 完成验证，再按需提供 `--captcha-token`；工具不代答验证码，不购买订阅或自动重试生成请求。
 
-## 本地 HTTP 服务
+## 单账号 HTTP 服务（兼容保留）
+
+多账号网关是默认入口。下面这个单账号 `serve` 命令仅为旧脚本保留，接口与网关的 Suno/OpenAI 风格不同。
 
 ```powershell
 .\dist\suno2api.exe serve

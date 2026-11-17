@@ -46,7 +46,7 @@ func New(config Config) (*Gateway, error) {
 	if err != nil {
 		return nil, err
 	}
-	for _, path := range []string{root, filepath.Join(root, "accounts"), filepath.Join(root, "downloads")} {
+	for _, path := range []string{root, filepath.Join(root, "accounts"), filepath.Join(root, "downloads"), filepath.Join(root, "keys"), filepath.Join(root, "jobs"), filepath.Join(root, "files")} {
 		if err := os.MkdirAll(path, 0700); err != nil {
 			return nil, err
 		}
@@ -68,6 +68,11 @@ func New(config Config) (*Gateway, error) {
 	if config.DefaultModel == "" {
 		config.DefaultModel = "v6-mini"
 	}
+	apiStyle, err := normalizeAPIStyle(config.APIStyle)
+	if err != nil {
+		return nil, err
+	}
+	config.APIStyle = apiStyle
 	if config.AccountClientFactory == nil {
 		config.AccountClientFactory = defaultFactory
 	}
@@ -94,14 +99,10 @@ func New(config Config) (*Gateway, error) {
 	}
 	ctx, cancel := context.WithCancel(context.Background())
 	service := &Gateway{config: config, dataDir: root, downloadDir: downloadDir, adminKey: digest(adminKey), accounts: make(map[string]*runtimeAccount), adminSessions: make(map[string]adminSession), loginAttempts: make(map[string]loginAttempt), ctx: ctx, cancel: cancel, mux: http.NewServeMux()}
-	service.state = persistent{Version: 1, Accounts: map[string]*accountRecord{}, Jobs: map[string]*JobView{}, Keys: map[string]*keyRecord{}, Files: map[string]*fileRecord{}}
-	if err := readJSON(filepath.Join(root, "metadata.json"), &service.state); err != nil && !os.IsNotExist(err) {
+	service.state = normalizePersistent(persistent{})
+	if err := service.loadStateLocked(); err != nil {
 		cancel()
-		return nil, errors.New("gateway metadata could not be loaded")
-	}
-	if service.state.Version != 1 || service.state.Accounts == nil || service.state.Jobs == nil || service.state.Keys == nil || service.state.Files == nil {
-		cancel()
-		return nil, errors.New("unsupported gateway metadata format")
+		return nil, err
 	}
 	for _, job := range service.state.Jobs {
 		if job.State == "submitting" {
@@ -114,11 +115,14 @@ func New(config Config) (*Gateway, error) {
 	}
 	for id, record := range service.state.Accounts {
 		record.Inflight = 0
-		if record.Enabled && record.DeletedAt == nil {
-			if err := service.buildAccountLocked(id); err != nil {
-				record.State = "configuration_error"
-				record.LastError = "账号客户端配置不可用"
-			}
+		if record.DeletedAt != nil {
+			continue
+		}
+		// The enabled switch only controls generation scheduling. Disabled accounts
+		// keep a client so balance checks, renewal, and keepalive still work.
+		if err := service.buildAccountLocked(id); err != nil {
+			record.State = "configuration_error"
+			record.LastError = "账号客户端配置不可用"
 		}
 	}
 	if err := service.persistLocked(); err != nil {
@@ -129,7 +133,21 @@ func New(config Config) (*Gateway, error) {
 	return service, nil
 }
 
+func normalizeAPIStyle(value string) (string, error) {
+	switch strings.ToLower(strings.TrimSpace(value)) {
+	case "", "both":
+		return "both", nil
+	case "suno":
+		return "suno", nil
+	case "openai":
+		return "openai", nil
+	}
+	return "", errors.New("gateway API style must be suno, openai, or both")
+}
+
 func (gateway *Gateway) AdminKeyPath() string  { return filepath.Join(gateway.dataDir, "admin.key") }
+func (gateway *Gateway) APIStyle() string      { return gateway.config.APIStyle }
+func (gateway *Gateway) DataDir() string       { return gateway.dataDir }
 func (gateway *Gateway) Handler() http.Handler { return gateway }
 func (gateway *Gateway) Close() error {
 	gateway.mu.Lock()
@@ -221,14 +239,14 @@ func (gateway *Gateway) startAccountLocked(id string, runtime *runtimeAccount) {
 			if event.ErrorCode != "" {
 				record.LastError = "保活状态：" + event.ErrorCode
 			}
-			_ = gateway.persistLocked()
+			_ = gateway.persistAccountLocked(id)
 		})
 		if err != nil && runtime.ctx.Err() == nil {
 			gateway.mu.Lock()
 			if gateway.accounts[id] == runtime {
 				record := gateway.state.Accounts[id]
 				record.LastError = "自动保活已停止，请检查会话状态"
-				_ = gateway.persistLocked()
+				_ = gateway.persistAccountLocked(id)
 			}
 			gateway.mu.Unlock()
 		}
@@ -403,13 +421,11 @@ func (gateway *Gateway) addAccountLocked(input AccountInput) (AccountView, error
 	now := time.Now().UTC()
 	record := &accountRecord{AccountView: AccountView{ID: id, Name: input.Name, Enabled: enabled, Weight: input.Weight, MaxConcurrency: input.MaxConcurrency, Protocol: input.Protocol, Model: input.Model, State: "unchecked", CreatedAt: now, UpdatedAt: now}, IdentityHash: credentialIdentity(input.Cookie)}
 	gateway.state.Accounts[id] = record
-	if enabled {
-		if err := gateway.buildAccountLocked(id); err != nil {
-			delete(gateway.state.Accounts, id)
-			return AccountView{}, errors.New("账号客户端无法创建")
-		}
+	if err := gateway.buildAccountLocked(id); err != nil {
+		delete(gateway.state.Accounts, id)
+		return AccountView{}, errors.New("账号客户端无法创建")
 	}
-	if err := gateway.persistLocked(); err != nil {
+	if err := gateway.persistAccountLocked(id); err != nil {
 		return AccountView{}, err
 	}
 	return gateway.viewAccountLocked(id), nil
@@ -419,6 +435,19 @@ func (gateway *Gateway) updateAccountLocked(id string, input AccountInput) (Acco
 	record := gateway.state.Accounts[id]
 	if record == nil {
 		return AccountView{}, errors.New("账号不存在")
+	}
+	if input.Enabled != nil && strings.TrimSpace(input.Name) == "" && input.Cookie == "" && input.AuthCookie == "" && input.Weight == 0 && input.MaxConcurrency == 0 && input.Protocol == "" && input.Model == "" {
+		// Enabled only decides whether the account may receive new generations.
+		// Keep the runtime, keepalive, billing checks, and renewal untouched.
+		if record.DeletedAt != nil {
+			return AccountView{}, errors.New("账号已归档，请先恢复")
+		}
+		record.Enabled = *input.Enabled
+		record.UpdatedAt = time.Now().UTC()
+		if err := gateway.persistAccountLocked(id); err != nil {
+			return AccountView{}, err
+		}
+		return gateway.viewAccountLocked(id), nil
 	}
 	var err error
 	if input.Name == "" {
@@ -487,13 +516,13 @@ func (gateway *Gateway) updateAccountLocked(id string, input AccountInput) (Acco
 	record.LastError = ""
 	record.Billing = nil
 	record.Session = nil
-	if record.Enabled && record.DeletedAt == nil {
+	if record.DeletedAt == nil {
 		if err := gateway.buildAccountLocked(id); err != nil {
 			record.State = "configuration_error"
 			record.LastError = "账号客户端不可用"
 		}
 	}
-	if err := gateway.persistLocked(); err != nil {
+	if err := gateway.persistAccountLocked(id); err != nil {
 		return AccountView{}, err
 	}
 	return gateway.viewAccountLocked(id), nil

@@ -20,7 +20,7 @@ func (gateway *Gateway) ServeHTTP(writer http.ResponseWriter, request *http.Requ
 		writeJSON(writer, http.StatusOK, map[string]string{"status": "ok"})
 		return
 	}
-	isApplicationRoute := strings.HasPrefix(request.URL.Path, "/admin/api/") || strings.HasPrefix(request.URL.Path, "/api/") || request.URL.Path == "/download"
+	isApplicationRoute := strings.HasPrefix(request.URL.Path, "/admin/api/") || strings.HasPrefix(request.URL.Path, "/api/") || strings.HasPrefix(request.URL.Path, "/v1/") || request.URL.Path == "/download"
 	if !safeOrigin(request, isApplicationRoute) {
 		writeError(writer, http.StatusForbidden, "cross_origin", "禁止跨站请求")
 		return
@@ -42,7 +42,7 @@ func (gateway *Gateway) ServeHTTP(writer http.ResponseWriter, request *http.Requ
 		gateway.mux.ServeHTTP(writer, request)
 		return
 	}
-	if strings.HasPrefix(request.URL.Path, "/api/") || request.URL.Path == "/download" {
+	if strings.HasPrefix(request.URL.Path, "/api/") || strings.HasPrefix(request.URL.Path, "/v1/") || request.URL.Path == "/download" {
 		if !gateway.authenticatedAPI(request) {
 			writeError(writer, http.StatusUnauthorized, "api_key_required", "请提供网关 API Key")
 			return
@@ -109,7 +109,7 @@ func (gateway *Gateway) authenticatedAPI(request *http.Request) bool {
 			persist := key.LastUsedAt == nil || now.Sub(*key.LastUsedAt) > time.Minute
 			key.LastUsedAt = &now
 			if persist {
-				_ = gateway.persistLocked()
+				_ = gateway.persistKeyLocked(key.ID)
 			}
 			return true
 		}

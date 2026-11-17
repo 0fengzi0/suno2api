@@ -26,10 +26,12 @@ func gatewayCommand(ctx context.Context, flags *flag.FlagSet, arguments []string
 		dataDir = "data/gateway"
 	}
 	adminKeyFile := configuration.GatewayAdminKeyFile
+	apiStyle := configuration.GatewayAPIStyle
 	importCurrent := false
 	flags.StringVar(&listen, "listen", listen, "gateway HTTP listen address; remote binding requires explicit --listen and an administrator key")
 	flags.StringVar(&dataDir, "data-dir", dataDir, "gateway private account, key, and job storage directory")
 	flags.StringVar(&adminKeyFile, "admin-key-file", adminKeyFile, "file containing an existing administrator key; otherwise SUNO_ADMIN_KEY or a generated key is used")
+	flags.StringVar(&apiStyle, "api-style", apiStyle, "public API style: suno for /api/*, openai for /v1/*, or both")
 	flags.BoolVar(&importCurrent, "import-current", false, "explicitly import the currently configured Suno Cookie files, preserving an existing matching account")
 	if err := parseFlags(flags, arguments); err != nil {
 		return err
@@ -60,7 +62,7 @@ func gatewayCommand(ctx context.Context, flags *flag.FlagSet, arguments []string
 	if err != nil {
 		return err
 	}
-	service, err := gateway.New(gateway.Config{DataDir: dataDir, HTTPClient: httpClient, AdminKey: key, RequestTimeout: common.timeout, DefaultModel: common.defaultModel, WebHandler: web.Handler()})
+	service, err := gateway.New(gateway.Config{DataDir: dataDir, HTTPClient: httpClient, AdminKey: key, RequestTimeout: common.timeout, DefaultModel: common.defaultModel, APIStyle: apiStyle, WebHandler: web.Handler()})
 	if err != nil {
 		return err
 	}
@@ -92,7 +94,8 @@ func gatewayCommand(ctx context.Context, flags *flag.FlagSet, arguments []string
 	} else {
 		fmt.Fprintf(os.Stderr, "Gateway administrator key source: %s\n", keySource)
 	}
-	fmt.Fprintf(os.Stderr, "Suno gateway listening on http://%s (%s). Enter the administrator key in the web login.\n", listener.Addr(), proxySource)
+	fmt.Fprintf(os.Stderr, "Suno gateway listening on http://%s (%s). API style: %s. Data: %s\n", listener.Addr(), proxySource, service.APIStyle(), service.DataDir())
+	fmt.Fprintln(os.Stderr, "Open the address above, log in with the administrator key, then add accounts and API keys.")
 	closeOnReturn = false
 	return serveGateway(ctx, listener, service, common.timeout)
 }

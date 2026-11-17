@@ -189,3 +189,67 @@ func TestRemoteListenerRequiresSufficientAPIKey(t *testing.T) {
 		t.Fatal(err)
 	}
 }
+
+func clearEnv(t *testing.T, key string) {
+	t.Helper()
+	original, existed := os.LookupEnv(key)
+	os.Unsetenv(key)
+	t.Cleanup(func() {
+		if existed {
+			os.Setenv(key, original)
+		} else {
+			os.Unsetenv(key)
+		}
+	})
+}
+
+func TestEnvFileConfiguresGatewayAndProcessEnvironmentWins(t *testing.T) {
+	root := t.TempDir()
+	envPath := filepath.Join(root, ".env")
+	content := "# gateway defaults\nexport SUNO_GATEWAY_LISTEN=127.0.0.1:8181\nSUNO_GATEWAY_API_STYLE=\"openai\"\nSUNO_GATEWAY_DATA_DIR=data/gw # relative to the working directory\nSUNO_GATEWAY_ADMIN_KEY_FILE=admin.key\nSUNO_MODEL=v6-mini\nSUNO_REQUEST_TIMEOUT=90s\n"
+	if err := os.WriteFile(envPath, []byte(content), 0600); err != nil {
+		t.Fatal(err)
+	}
+	for _, key := range []string{"SUNO_GATEWAY_LISTEN", "SUNO_GATEWAY_API_STYLE", "SUNO_API_STYLE", "SUNO_GATEWAY_DATA_DIR", "SUNO_GATEWAY_ADMIN_KEY_FILE", "SUNO_REQUEST_TIMEOUT"} {
+		clearEnv(t, key)
+	}
+	t.Setenv("SUNO_MODEL", "v6")
+	used, err := loadEnvFile(envPath, "")
+	if err != nil || used != envPath {
+		t.Fatalf("env file not loaded: %v", err)
+	}
+	var configuration diskConfig
+	if err := applyEnvironment(&configuration); err != nil {
+		t.Fatal(err)
+	}
+	if configuration.GatewayListen != "127.0.0.1:8181" || configuration.GatewayAPIStyle != "openai" || configuration.GatewayDataDir != "data/gw" || configuration.GatewayAdminKeyFile != "admin.key" || configuration.RequestTimeout != "90s" {
+		t.Fatalf("env configuration not applied: %#v", configuration)
+	}
+	if configuration.Model != "v6" {
+		t.Fatal("the process environment must win over .env")
+	}
+	timeout, err := configuredTimeout(configuration.RequestTimeout)
+	if err != nil || timeout != 90*time.Second {
+		t.Fatalf("request timeout not parsed: %v", err)
+	}
+	if _, err := configuredTimeout("not-a-duration"); err == nil {
+		t.Fatal("invalid request timeout accepted")
+	}
+}
+
+func TestEnvFileParsingHandlesQuotesCommentsAndExports(t *testing.T) {
+	path := filepath.Join(t.TempDir(), ".env")
+	content := "A=plain value\nB=\"quoted value\"\nC=value # comment\nexport D='single value'\nE=\"line\\nbreak\"\ninvalid line\n"
+	if err := os.WriteFile(path, []byte(content), 0600); err != nil {
+		t.Fatal(err)
+	}
+	values, err := parseEnvFile(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	for key, want := range map[string]string{"A": "plain value", "B": "quoted value", "C": "value", "D": "single value", "E": "line\nbreak"} {
+		if values[key] != want {
+			t.Fatalf("%s = %q, want %q", key, values[key], want)
+		}
+	}
+}

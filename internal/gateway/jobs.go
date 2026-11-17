@@ -17,6 +17,46 @@ type generationInput struct {
 	AccountID string `json:"account_id,omitempty"`
 }
 
+func normalizeGeneration(request generate.Request, defaultModel string) (generate.Request, error) {
+	if strings.TrimSpace(request.Model) == "" {
+		request.Model = defaultModel
+	}
+	if request.BatchSize == 0 {
+		request.BatchSize = 2
+	}
+	if request.BatchSize < 1 || request.BatchSize > 2 {
+		return request, errors.New("batch_size 只能是 1 或 2")
+	}
+	description := strings.TrimSpace(request.Prompt)
+	lyrics := strings.TrimSpace(request.Lyrics)
+	style := strings.TrimSpace(request.Style)
+	if len(request.Prompt)+len(request.Lyrics) > 65536 {
+		return request, errors.New("歌曲文本过长")
+	}
+	custom := request.Custom || lyrics != ""
+	if !custom && request.Instrumental && description == "" && style != "" {
+		custom = true
+	}
+	request.Custom = custom
+	if custom && request.Instrumental {
+		// Instrumental songs have no vocal track: never forward the text as lyrics.
+		request.Lyrics = ""
+		request.Prompt = ""
+	}
+	if custom {
+		if request.Instrumental {
+			if style == "" {
+				return request, errors.New("纯音乐自定义模式需要填写音乐风格")
+			}
+		} else if lyrics == "" {
+			return request, errors.New("自定义模式需要歌词；简单描述请关闭自定义模式")
+		}
+	} else if description == "" {
+		return request, errors.New("请填写音乐描述")
+	}
+	return request, nil
+}
+
 func (gateway *Gateway) pickAccountLocked(explicit, model string) (string, *runtimeAccount, error) {
 	if gateway.closed {
 		return "", nil, errors.New("gateway is closed")
@@ -70,6 +110,113 @@ func (gateway *Gateway) pickAccountLocked(explicit, model string) (string, *runt
 	chosen.inflight++
 	gateway.state.Accounts[selected].Inflight++
 	return selected, chosen, nil
+}
+
+// startJob selects an account, records the job before any upstream request, and
+// returns the runtime that must submit it.
+func (gateway *Gateway) startJob(accountID, model string) (*JobView, *runtimeAccount, error) {
+	gateway.mu.Lock()
+	defer gateway.mu.Unlock()
+	id, runtime, err := gateway.pickAccountLocked(accountID, model)
+	if err != nil {
+		return nil, nil, err
+	}
+	release := func() {
+		if runtime.inflight > 0 {
+			runtime.inflight--
+		}
+		if account := gateway.state.Accounts[id]; account != nil && account.Inflight > 0 {
+			account.Inflight--
+		}
+	}
+	jobID, err := randomID()
+	if err != nil {
+		release()
+		return nil, nil, err
+	}
+	now := time.Now().UTC()
+	job := &JobView{ID: jobID, AccountID: id, RequestedModel: model, State: "submitting", ClipIDs: []string{}, Clips: []ClipView{}, CreatedAt: now, UpdatedAt: now}
+	gateway.state.Jobs[jobID] = job
+	if err := gateway.persistJobLocked(jobID); err != nil {
+		delete(gateway.state.Jobs, jobID)
+		release()
+		return nil, nil, errors.New("job record could not be saved")
+	}
+	snapshot := *job
+	return &snapshot, runtime, nil
+}
+
+func (gateway *Gateway) applyJobOutcomeLocked(job *JobView, response generate.Response, err error) {
+	job.RequestID = response.ID
+	job.ClipIDs = response.IDs()
+	job.RequestedIDs = response.RequestedIDs()
+	if len(job.RequestedIDs) == 0 && response.RequestedModel == "" {
+		wanted := job.RequestedModel
+		if wanted == "v6-mini" {
+			wanted = "chirp-goose"
+		}
+		for _, clip := range response.Clips {
+			if clip.ModelName == wanted || clip.ModelName == "" {
+				job.RequestedIDs = append(job.RequestedIDs, clip.ID)
+			}
+		}
+	}
+	job.Clips = projectClips(response.Clips)
+	job.UpdatedAt = time.Now().UTC()
+	if err == nil {
+		job.State = jobState(job)
+		if job.State == "submitted" {
+			job.Error = ""
+		}
+		return
+	}
+	_, _, message := operationError(err)
+	job.Error = message
+	job.State = "failed"
+	var network net.Error
+	if response.ID != "" || len(response.Clips) > 0 {
+		job.State = "submitted"
+		job.Error = "上游已返回任务，但响应需核查；请查询原任务，不要重提"
+	} else if errors.As(err, &network) || errors.Is(err, context.Canceled) || errors.Is(err, context.DeadlineExceeded) || ambiguousGenerationError(err) {
+		job.State = "submission_unknown"
+		job.Error = "网络中断，提交结果未确认；请在原账号作品中核对，不会自动换号重提"
+	}
+}
+
+// executeJob submits one job and always releases its account slot.
+func (gateway *Gateway) executeJob(parent context.Context, id string, runtime *runtimeAccount, input generate.Request) (JobView, generate.Response, error) {
+	defer gateway.releaseAccountForJob(id, runtime)
+	ctx, cancel := accountContext(parent, runtime, gateway.config.RequestTimeout)
+	defer cancel()
+	response, err := runtime.client.Generate(ctx, input)
+	gateway.mu.Lock()
+	defer gateway.mu.Unlock()
+	job := gateway.state.Jobs[id]
+	if job == nil {
+		return JobView{}, response, err
+	}
+	gateway.applyJobOutcomeLocked(job, response, err)
+	_ = gateway.persistJobLocked(id)
+	return *job, response, err
+}
+
+func (gateway *Gateway) releaseAccountForJob(jobID string, runtime *runtimeAccount) {
+	gateway.mu.Lock()
+	accountID := ""
+	if job := gateway.state.Jobs[jobID]; job != nil {
+		accountID = job.AccountID
+	}
+	gateway.mu.Unlock()
+	if accountID != "" {
+		gateway.releaseAccount(accountID, runtime)
+	}
+}
+
+func (gateway *Gateway) submitJob(id string, runtime *runtimeAccount, input generate.Request) {
+	defer gateway.wait.Done()
+	// Keep the submission alive if the HTTP caller disconnects; the job record
+	// already exists, so a dropped response must never cause an automatic retry.
+	gateway.executeJob(runtime.ctx, id, runtime, input)
 }
 
 func (gateway *Gateway) pollJobs(ctx context.Context) {
@@ -132,7 +279,7 @@ func (gateway *Gateway) refreshJob(parent context.Context, id string) (JobView, 
 	current.State = jobState(current)
 	current.UpdatedAt = time.Now().UTC()
 	current.Error = ""
-	if err := gateway.persistLocked(); err != nil {
+	if err := gateway.persistJobLocked(id); err != nil {
 		return *current, err
 	}
 	return *current, nil
@@ -148,106 +295,25 @@ func (gateway *Gateway) releaseAccount(id string, runtime *runtimeAccount) {
 	}
 	gateway.mu.Unlock()
 }
+
 func (gateway *Gateway) generateHTTP(writer http.ResponseWriter, request *http.Request) {
 	var input generationInput
 	if !decodeJSON(writer, request, &input) {
 		return
 	}
-	if strings.TrimSpace(input.Prompt) == "" && strings.TrimSpace(input.Lyrics) == "" && !(input.Instrumental && strings.TrimSpace(input.Style) != "") {
-		writeError(writer, 400, "prompt_required", "请填写歌曲描述或歌词")
-		return
-	}
-	if len(input.Prompt)+len(input.Lyrics) > 65536 {
-		writeError(writer, 400, "prompt_too_large", "歌曲文本过长")
-		return
-	}
-	if input.Model == "" {
-		input.Model = gateway.config.DefaultModel
-	}
-	gateway.mu.Lock()
-	id, runtime, err := gateway.pickAccountLocked(input.AccountID, input.Model)
+	normalized, err := normalizeGeneration(input.Request, gateway.config.DefaultModel)
 	if err != nil {
-		gateway.mu.Unlock()
+		writeError(writer, 400, "invalid_request", err.Error())
+		return
+	}
+	job, runtime, err := gateway.startJob(input.AccountID, normalized.Model)
+	if err != nil {
 		writeError(writer, 503, "no_available_account", "没有可用账号，或已达到账号并发上限")
 		return
 	}
-	jobID, err := randomID()
-	if err != nil {
-		runtime.inflight--
-		gateway.state.Accounts[id].Inflight--
-		gateway.mu.Unlock()
-		writeError(writer, 500, "internal_error", "任务创建失败")
-		return
-	}
-	now := time.Now().UTC()
-	job := &JobView{ID: jobID, AccountID: id, RequestedModel: input.Model, State: "submitting", ClipIDs: []string{}, Clips: []ClipView{}, CreatedAt: now, UpdatedAt: now}
-	gateway.state.Jobs[jobID] = job
-	if err := gateway.persistLocked(); err != nil {
-		delete(gateway.state.Jobs, jobID)
-		runtime.inflight--
-		gateway.state.Accounts[id].Inflight--
-		gateway.mu.Unlock()
-		writeError(writer, 500, "storage_error", "任务记录失败，尚未提交")
-		return
-	}
-	snapshot := *job
 	gateway.wait.Add(1)
-	gateway.mu.Unlock()
-	go gateway.submitJob(jobID, runtime, input.Request)
-	writeJSON(writer, http.StatusAccepted, map[string]any{"job": snapshot})
-}
-
-func (gateway *Gateway) submitJob(id string, runtime *runtimeAccount, input generate.Request) {
-	defer gateway.wait.Done()
-	gateway.mu.Lock()
-	accountID := gateway.state.Jobs[id].AccountID
-	gateway.mu.Unlock()
-	defer gateway.releaseAccount(accountID, runtime)
-	ctx, cancel := context.WithTimeout(runtime.ctx, gateway.config.RequestTimeout)
-	defer cancel()
-	response, err := runtime.client.Generate(ctx, input)
-	gateway.mu.Lock()
-	job := gateway.state.Jobs[id]
-	if job == nil {
-		gateway.mu.Unlock()
-		return
-	}
-	job.RequestID = response.ID
-	job.ClipIDs = response.IDs()
-	job.RequestedIDs = response.RequestedIDs()
-	if len(job.RequestedIDs) == 0 && response.RequestedModel == "" {
-		wanted := job.RequestedModel
-		if wanted == "v6-mini" {
-			wanted = "chirp-goose"
-		}
-		for _, clip := range response.Clips {
-			if clip.ModelName == wanted || clip.ModelName == "" {
-				job.RequestedIDs = append(job.RequestedIDs, clip.ID)
-			}
-		}
-	}
-	job.Clips = projectClips(response.Clips)
-	job.UpdatedAt = time.Now().UTC()
-	if err != nil {
-		_, _, message := operationError(err)
-		job.Error = message
-		job.State = "failed"
-		var network net.Error
-		if response.ID != "" || len(response.Clips) > 0 {
-			job.State = "submitted"
-			job.Error = "上游已返回任务，但响应需核查；请查询原任务，不要重提"
-		} else if errors.As(err, &network) || errors.Is(err, context.Canceled) || errors.Is(err, context.DeadlineExceeded) || ambiguousGenerationError(err) {
-			job.State = "submission_unknown"
-			job.Error = "网络中断，提交结果未确认；请在原账号作品中核对，不会自动换号重提"
-		}
-	} else {
-		job.State = jobState(job)
-		if job.State == "submitted" {
-			job.Error = ""
-		}
-	}
-	_ = gateway.persistLocked()
-	gateway.mu.Unlock()
+	go gateway.submitJob(job.ID, runtime, normalized)
+	writeJSON(writer, http.StatusAccepted, map[string]any{"job": *job})
 }
 
 func ambiguousGenerationError(err error) bool {
@@ -342,7 +408,7 @@ func (gateway *Gateway) songsHTTP(writer http.ResponseWriter, request *http.Requ
 	}
 	runtime, err := gateway.accountForOperation(accountID)
 	if err != nil {
-		writeError(writer, 409, "account_unavailable", "原账号已禁用或不可用")
+		writeError(writer, 409, "account_unavailable", "原账号不可用或已归档")
 		return
 	}
 	ctx, cancel := accountContext(request.Context(), runtime, time.Minute)

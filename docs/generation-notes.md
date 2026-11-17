@@ -34,7 +34,7 @@
 
 `NewClient(Config)` 创建客户端，`Generate(ctx, Request)` 仅提交一次，`Get(ctx, ids)` 查询歌曲，`Wait(ctx, ids)` 等待歌曲 `complete` 且提供音频媒体。`Response.IDs()` 提取全部歌曲 ID，`RequestedIDs()` 优先提取与实际请求模型一致的歌曲。`Billing(ctx)` 仅投影模型与额度，避免在调用输出中夹带账号个人资料。
 
-简单生成使用 `Prompt` 描述；自定义生成使用 `Custom`、`Lyrics`、`Style`、`Title`。纯音乐设置 `Instrumental=true`。安卓 `BatchSize` 可设 1 或 2；网页 profile 按当前官方 builder 省略该字段。按用户指定，默认模型固定为 v6-mini，对应 `chirp-goose`，支持该别名，不会自动改选付费模型。
+简单生成使用 `Prompt` 描述；自定义生成使用 `Custom`、`Lyrics`、`Style`、`Title`。纯音乐设置 `Instrumental=true`。模式只由 `Custom` 或实际歌词触发，`Style`/`Title` 不会把简单描述误判成自定义歌词；自定义纯音乐时 `prompt` 固定为空、只发送 `tags`，不会把音乐描述送去演唱。网关和网页表单都按这条规则归一化。安卓 `BatchSize` 可设 1 或 2；网页 profile 按当前官方 builder 省略该字段。按用户指定，默认模型固定为 v6-mini，对应 `chirp-goose`，支持该别名，不会自动改选付费模型。
 
 线上验证发现旧 `generate/clip/{id}` 路径对当前会话返回 403，而已证实 `GET clip/{id}/` 返回正确状态，因此查询使用现行 `clip/{id}/`，404 时才回退旧静态路径。APK 的只读 `POST feed/v3` 精确 ID 查询也验证为 HTTP 200，状态与公开 clip 查询一致。
 

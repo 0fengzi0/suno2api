@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"sort"
 	"strings"
 	"time"
 )
@@ -21,7 +22,7 @@ func (gateway *Gateway) downloadAsset(ctx context.Context, input downloadInput) 
 		return FileView{}, errors.New("missing share URL")
 	}
 	gateway.mu.Lock()
-	id, runtime, err := gateway.pickAccountLocked(input.AccountID, "")
+	id, runtime, err := gateway.reserveDownloadAccountLocked(input.AccountID)
 	gateway.mu.Unlock()
 	if err != nil {
 		return FileView{}, err
@@ -49,13 +50,59 @@ func (gateway *Gateway) downloadAsset(ctx context.Context, input downloadInput) 
 	view := FileView{ID: fileID, AccountID: id, Filename: filepath.Base(result.Path), Bytes: result.Bytes, SHA256: result.SHA256, CreatedAt: time.Now().UTC()}
 	gateway.mu.Lock()
 	gateway.state.Files[fileID] = &fileRecord{FileView: view, RelativePath: relative}
-	err = gateway.persistLocked()
+	err = gateway.persistFileLocked(fileID)
 	gateway.mu.Unlock()
 	if err != nil {
 		return FileView{}, err
 	}
 	return view, nil
 }
+
+// reserveDownloadAccountLocked allows an explicitly selected account even when
+// it is disabled for generation: the switch only limits new songs, not balance
+// checks, renewal, or saving an existing song.
+func (gateway *Gateway) reserveDownloadAccountLocked(accountID string) (string, *runtimeAccount, error) {
+	if gateway.closed {
+		return "", nil, errors.New("gateway is closed")
+	}
+	accountID = strings.TrimSpace(accountID)
+	if accountID == "" {
+		id, runtime, err := gateway.pickAccountLocked("", "")
+		if err == nil {
+			return id, runtime, nil
+		}
+		// Downloads are not generation: when every account is disabled for new
+		// songs, fall back to a maintained account with spare capacity.
+		ids := make([]string, 0, len(gateway.state.Accounts))
+		for id := range gateway.state.Accounts {
+			ids = append(ids, id)
+		}
+		sort.Strings(ids)
+		for _, id := range ids {
+			record := gateway.state.Accounts[id]
+			runtime := gateway.accounts[id]
+			if record.DeletedAt != nil || runtime == nil || record.MaxConcurrency > 0 && record.Inflight >= record.MaxConcurrency {
+				continue
+			}
+			runtime.inflight++
+			record.Inflight++
+			return id, runtime, nil
+		}
+		return "", nil, errors.New("account unavailable")
+	}
+	record := gateway.state.Accounts[accountID]
+	runtime := gateway.accounts[accountID]
+	if record == nil || record.DeletedAt != nil || runtime == nil {
+		return "", nil, errors.New("account unavailable")
+	}
+	if record.MaxConcurrency > 0 && record.Inflight >= record.MaxConcurrency {
+		return "", nil, errors.New("account concurrency limit reached")
+	}
+	runtime.inflight++
+	record.Inflight++
+	return accountID, runtime, nil
+}
+
 func (gateway *Gateway) downloadJSON(writer http.ResponseWriter, request *http.Request) {
 	var input downloadInput
 	if !decodeJSON(writer, request, &input) {

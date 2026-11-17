@@ -44,25 +44,41 @@ func (client *Client) payload(request Request) (generationPayload, error) {
 	if batchSize < 1 || batchSize > 2 {
 		return generationPayload{}, errors.New("batch_size must be 1 or 2")
 	}
+	// The song description and the lyrics are different fields upstream. Style or title
+	// alone must never switch a simple description into custom lyrics: that used to send
+	// the description as the sung text even when instrumental was selected.
+	description := strings.TrimSpace(request.Prompt)
+	lyrics := strings.TrimSpace(request.Lyrics)
+	style := strings.TrimSpace(request.Style)
+	title := strings.TrimSpace(request.Title)
+	custom := request.Custom || lyrics != ""
+	if !custom && request.Instrumental && description == "" && style != "" {
+		// A style-only instrumental request can only be expressed in custom mode.
+		custom = true
+	}
 	payload := generationPayload{Model: model, Instrumental: request.Instrumental, GenerationType: "TEXT", Stream: false, BatchSize: batchSize, Token: request.CaptchaToken}
-	custom := request.Custom || request.Lyrics != "" || request.Style != "" || request.Title != ""
 	if custom {
 		payload.Metadata.CreateMode = "custom"
-		payload.Prompt = request.Lyrics
-		if payload.Prompt == "" {
-			payload.Prompt = request.Prompt
-		}
-		payload.Tags = request.Style
-		payload.Title = request.Title
-		if strings.TrimSpace(payload.Prompt) == "" && (!request.Instrumental || strings.TrimSpace(payload.Tags) == "") {
-			return generationPayload{}, errors.New("custom generation requires lyrics, or a style for an instrumental song")
+		payload.Tags = style
+		payload.Title = title
+		if request.Instrumental {
+			// Instrumental custom mode has no vocal track, so it never carries lyrics.
+			payload.Prompt = ""
+			if style == "" {
+				return generationPayload{}, errors.New("instrumental custom generation requires a musical style")
+			}
+		} else {
+			payload.Prompt = lyrics
+			if payload.Prompt == "" {
+				return generationPayload{}, errors.New("custom generation requires lyrics; clear the custom flag to use a song description")
+			}
 		}
 	} else {
 		payload.Metadata.CreateMode = "simple"
-		if strings.TrimSpace(request.Prompt) == "" {
+		if description == "" {
 			return generationPayload{}, errors.New("a song description is required")
 		}
-		payload.Description = request.Prompt
+		payload.Description = description
 	}
 	return payload, nil
 }
