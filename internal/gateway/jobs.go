@@ -119,6 +119,7 @@ func (gateway *Gateway) startJob(accountID, model string) (*JobView, *runtimeAcc
 	defer gateway.mu.Unlock()
 	id, runtime, err := gateway.pickAccountLocked(accountID, model)
 	if err != nil {
+		gateway.logf("warn", "job", "没有可用账号接收任务", map[string]any{"model": model, "requested_account": accountID})
 		return nil, nil, err
 	}
 	release := func() {
@@ -134,6 +135,7 @@ func (gateway *Gateway) startJob(accountID, model string) (*JobView, *runtimeAcc
 		release()
 		return nil, nil, err
 	}
+	gateway.logf("info", "job", "任务已创建，等待提交", map[string]any{"account": gateway.accountNameLocked(id), "model": model})
 	now := time.Now().UTC()
 	job := &JobView{ID: jobID, AccountID: id, RequestedModel: model, State: "submitting", ClipIDs: []string{}, Clips: []ClipView{}, CreatedAt: now, UpdatedAt: now}
 	gateway.state.Jobs[jobID] = job
@@ -195,9 +197,37 @@ func (gateway *Gateway) executeJob(parent context.Context, id string, runtime *r
 	if job == nil {
 		return JobView{}, response, err
 	}
+	previous := job.State
 	gateway.applyJobOutcomeLocked(job, response, err)
 	_ = gateway.persistJobLocked(id)
+	gateway.logJobOutcomeLocked(job, previous, err)
 	return *job, response, err
+}
+
+// logJobOutcomeLocked records state transitions once, so 15-second polling
+// does not flood the log with repeated "submitted" rows.
+func (gateway *Gateway) logJobOutcomeLocked(job *JobView, previous string, err error) {
+	if job.State == previous {
+		return
+	}
+	fields := map[string]any{"job": job.ID, "account": gateway.accountNameLocked(job.AccountID), "from": previous, "to": job.State}
+	switch job.State {
+	case "complete":
+		gateway.logf("info", "job", "任务完成", fields)
+	case "failed":
+		if err != nil {
+			fields["error"] = operationErrorMessage(err)
+		} else {
+			fields["error"] = job.Error
+		}
+		gateway.logf("error", "job", "任务失败", fields)
+	case "submission_unknown":
+		gateway.logf("warn", "job", "提交结果未确认", fields)
+	case "submitted":
+		if previous == "submitting" {
+			gateway.logf("info", "job", "上游已受理生成请求", fields)
+		}
+	}
 }
 
 func (gateway *Gateway) releaseAccountForJob(jobID string, runtime *runtimeAccount) {
@@ -314,6 +344,11 @@ func (gateway *Gateway) generateHTTP(writer http.ResponseWriter, request *http.R
 	gateway.wait.Add(1)
 	go gateway.submitJob(job.ID, runtime, normalized)
 	writeJSON(writer, http.StatusAccepted, map[string]any{"job": *job})
+}
+
+func operationErrorMessage(err error) string {
+	_, _, message := operationError(err)
+	return message
 }
 
 func ambiguousGenerationError(err error) bool {

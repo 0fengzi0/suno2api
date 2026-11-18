@@ -13,7 +13,6 @@ import (
 
 	"suno2api/internal/gateway"
 	"suno2api/internal/gateway/web"
-	"suno2api/internal/netconfig"
 )
 
 func gatewayCommand(ctx context.Context, flags *flag.FlagSet, arguments []string, configuration diskConfig, common *commonFlags) error {
@@ -58,11 +57,13 @@ func gatewayCommand(ctx context.Context, flags *flag.FlagSet, arguments []string
 	if err := validateGatewayListen(listen, key, keySource != "generated", listenExplicit); err != nil {
 		return err
 	}
-	httpClient, proxySource, err := netconfig.NewHTTPClient(common.proxy)
-	if err != nil {
-		return err
-	}
-	service, err := gateway.New(gateway.Config{DataDir: dataDir, HTTPClient: httpClient, AdminKey: key, RequestTimeout: common.timeout, DefaultModel: common.defaultModel, DefaultProtocol: common.protocol, APIStyle: apiStyle, WebHandler: web.Handler()})
+	proxyExplicit := false
+	flags.Visit(func(selected *flag.Flag) {
+		if selected.Name == "proxy" {
+			proxyExplicit = true
+		}
+	})
+	service, err := gateway.New(gateway.Config{DataDir: dataDir, Proxy: common.proxy, ProxyExplicit: proxyExplicit, AdminKey: key, RequestTimeout: common.timeout, DefaultModel: common.defaultModel, DefaultProtocol: common.protocol, APIStyle: apiStyle, WebHandler: web.Handler()})
 	if err != nil {
 		return err
 	}
@@ -94,7 +95,7 @@ func gatewayCommand(ctx context.Context, flags *flag.FlagSet, arguments []string
 	} else {
 		fmt.Fprintf(os.Stderr, "Gateway administrator key source: %s\n", keySource)
 	}
-	fmt.Fprintf(os.Stderr, "Suno gateway listening on http://%s (%s). API style: %s. Data: %s\n", listener.Addr(), proxySource, service.APIStyle(), service.DataDir())
+	fmt.Fprintf(os.Stderr, "Suno gateway listening on http://%s (%s). API style: %s. Data: %s\n", listener.Addr(), service.ProxySource(), service.APIStyle(), service.DataDir())
 	fmt.Fprintln(os.Stderr, "Open the address above, log in with the administrator key, then add accounts and API keys.")
 	closeOnReturn = false
 	return serveGateway(ctx, listener, service, common.timeout)

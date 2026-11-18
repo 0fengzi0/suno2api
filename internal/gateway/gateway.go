@@ -11,6 +11,7 @@ import (
 	"sync"
 	"time"
 
+	"suno2api/internal/netconfig"
 	"suno2api/internal/session"
 )
 
@@ -36,6 +37,9 @@ type Gateway struct {
 	mux                            *http.ServeMux
 	running, closed                bool
 	pollCursor                     int
+	logs                           *logStore
+	httpClient                     *http.Client
+	proxyValue, proxySource        string
 }
 
 func New(config Config) (*Gateway, error) {
@@ -46,7 +50,7 @@ func New(config Config) (*Gateway, error) {
 	if err != nil {
 		return nil, err
 	}
-	for _, path := range []string{root, filepath.Join(root, "accounts"), filepath.Join(root, "downloads"), filepath.Join(root, "keys"), filepath.Join(root, "jobs"), filepath.Join(root, "files")} {
+	for _, path := range []string{root, filepath.Join(root, "accounts"), filepath.Join(root, "downloads"), filepath.Join(root, "keys"), filepath.Join(root, "jobs"), filepath.Join(root, "files"), filepath.Join(root, "logs")} {
 		if err := os.MkdirAll(path, 0700); err != nil {
 			return nil, err
 		}
@@ -107,8 +111,22 @@ func New(config Config) (*Gateway, error) {
 		return nil, errors.New("gateway administrator key must contain at least 32 characters")
 	}
 	ctx, cancel := context.WithCancel(context.Background())
-	service := &Gateway{config: config, dataDir: root, downloadDir: downloadDir, adminKey: digest(adminKey), accounts: make(map[string]*runtimeAccount), adminSessions: make(map[string]adminSession), loginAttempts: make(map[string]loginAttempt), ctx: ctx, cancel: cancel, mux: http.NewServeMux()}
+	service := &Gateway{config: config, dataDir: root, downloadDir: downloadDir, adminKey: digest(adminKey), accounts: make(map[string]*runtimeAccount), adminSessions: make(map[string]adminSession), loginAttempts: make(map[string]loginAttempt), ctx: ctx, cancel: cancel, mux: http.NewServeMux(), logs: newLogStore(filepath.Join(root, "logs"))}
 	service.state = normalizePersistent(persistent{})
+
+	// The global proxy is operator-editable at runtime: an explicit CLI value
+	// wins and is persisted, otherwise the saved settings.json value applies.
+	proxyValue, err := service.initialProxyValue(config)
+	if err != nil {
+		cancel()
+		return nil, err
+	}
+	client, proxySource, err := netconfig.NewHTTPClient(proxyValue)
+	if err != nil {
+		cancel()
+		return nil, err
+	}
+	service.httpClient, service.proxyValue, service.proxySource = client, strings.TrimSpace(proxyValue), proxySource
 	if err := service.loadStateLocked(); err != nil {
 		cancel()
 		return nil, err
@@ -132,6 +150,7 @@ func New(config Config) (*Gateway, error) {
 		if err := service.buildAccountLocked(id); err != nil {
 			record.State = "configuration_error"
 			record.LastError = "账号客户端配置不可用"
+			service.logf("error", "account", "账号客户端初始化失败", map[string]any{"account": record.Name, "error": record.LastError})
 		}
 	}
 	if err := service.persistLocked(); err != nil {
@@ -139,8 +158,69 @@ func New(config Config) (*Gateway, error) {
 		return nil, err
 	}
 	service.routes()
+	service.logf("info", "system", "网关已初始化", map[string]any{"data_dir": root, "proxy_source": service.proxySource})
 	return service, nil
 }
+
+// initialProxyValue resolves the startup proxy: an explicit CLI/config flag
+// wins and is persisted; otherwise the saved settings.json value applies; a
+// fresh data directory persists the configured default so the management page
+// always shows the effective value.
+func (gateway *Gateway) initialProxyValue(config Config) (string, error) {
+	path := gatewaySettingsPath(gateway.dataDir)
+	value := strings.TrimSpace(config.Proxy)
+	if config.ProxyExplicit {
+		if _, err := validateProxyInput(value); err != nil {
+			return "", err
+		}
+		if err := saveGatewaySettings(path, gatewaySettings{Proxy: value}); err != nil {
+			return "", err
+		}
+		return value, nil
+	}
+	saved, found, err := loadGatewaySettings(path)
+	if err != nil {
+		return "", err
+	}
+	if found {
+		if _, err := validateProxyInput(saved.Proxy); err != nil {
+			return "", err
+		}
+		return saved.Proxy, nil
+	}
+	if _, err := validateProxyInput(value); err != nil {
+		return "", err
+	}
+	if err := saveGatewaySettings(path, gatewaySettings{Proxy: value}); err != nil {
+		return "", err
+	}
+	return value, nil
+}
+
+func (gateway *Gateway) accountNameLocked(id string) string {
+	if record := gateway.state.Accounts[id]; record != nil {
+		return record.Name
+	}
+	return id
+}
+
+func (gateway *Gateway) accountName(id string) string {
+	gateway.mu.Lock()
+	defer gateway.mu.Unlock()
+	return gateway.accountNameLocked(id)
+}
+
+func (gateway *Gateway) logf(level, typ, message string, fields map[string]any) {
+	if gateway.logs != nil {
+		gateway.logs.write(level, typ, message, fields)
+	}
+}
+
+// ProxySource reports the human-readable source of the effective proxy.
+func (gateway *Gateway) ProxySource() string { return gateway.proxySource }
+
+// ProxyValue reports the configured proxy value ("" means automatic).
+func (gateway *Gateway) ProxyValue() string { return gateway.proxyValue }
 
 func normalizeAPIStyle(value string) (string, error) {
 	switch strings.ToLower(strings.TrimSpace(value)) {
@@ -171,6 +251,8 @@ func (gateway *Gateway) Close() error {
 	}
 	gateway.mu.Unlock()
 	gateway.wait.Wait()
+	gateway.logf("info", "system", "网关已停止", nil)
+	gateway.logs.close()
 	return nil
 }
 func (gateway *Gateway) Run(ctx context.Context) error {
@@ -180,6 +262,7 @@ func (gateway *Gateway) Run(ctx context.Context) error {
 		return errors.New("gateway is closed")
 	}
 	gateway.running = true
+	gateway.logf("info", "system", "网关开始运行，账号保活已启动", map[string]any{"accounts": len(gateway.accounts)})
 	for id, runtime := range gateway.accounts {
 		gateway.startAccountLocked(id, runtime)
 	}
@@ -204,7 +287,7 @@ func (gateway *Gateway) buildAccountLocked(id string) error {
 	if _, err := os.Stat(auth); os.IsNotExist(err) {
 		auth = ""
 	}
-	client, err := gateway.config.AccountClientFactory(AccountClientConfig{ID: id, TokenFile: gateway.credentialPath(id), AuthCookieFile: auth, Protocol: record.Protocol, Model: record.Model, HTTPClient: gateway.config.HTTPClient})
+	client, err := gateway.config.AccountClientFactory(AccountClientConfig{ID: id, TokenFile: gateway.credentialPath(id), AuthCookieFile: auth, Protocol: record.Protocol, Model: record.Model, HTTPClient: gateway.httpClient})
 	if err != nil {
 		return err
 	}
@@ -248,6 +331,14 @@ func (gateway *Gateway) startAccountLocked(id string, runtime *runtimeAccount) {
 			if event.ErrorCode != "" {
 				record.LastError = "保活状态：" + event.ErrorCode
 			}
+			switch event.State {
+			case "refreshed":
+				gateway.logf("info", "account", "会话续期成功", map[string]any{"account": record.Name})
+			case "retrying":
+				gateway.logf("warn", "account", "会话续期重试中", map[string]any{"account": record.Name, "error": event.ErrorCode})
+			case "stopped":
+				gateway.logf("warn", "account", "自动保活已停止", map[string]any{"account": record.Name, "error": event.ErrorCode})
+			}
 			_ = gateway.persistAccountLocked(id)
 		})
 		if err != nil && runtime.ctx.Err() == nil {
@@ -255,6 +346,7 @@ func (gateway *Gateway) startAccountLocked(id string, runtime *runtimeAccount) {
 			if gateway.accounts[id] == runtime {
 				record := gateway.state.Accounts[id]
 				record.LastError = "自动保活已停止，请检查会话状态"
+				gateway.logf("warn", "account", "自动保活已停止，请检查会话状态", map[string]any{"account": record.Name, "error": err.Error()})
 				_ = gateway.persistAccountLocked(id)
 			}
 			gateway.mu.Unlock()

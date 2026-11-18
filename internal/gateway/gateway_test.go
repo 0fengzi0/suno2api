@@ -833,6 +833,103 @@ func TestAccountProtocolDefaultsToAndroidWithWebFallback(t *testing.T) {
 	}
 }
 
+func TestGlobalProxySettingsApplyPersistAndRebuild(t *testing.T) {
+	fixture := newFixture(t)
+	one := fixture.add(t, "one")
+	cookie, csrf := adminLogin(t, fixture.gateway)
+	before := fixture.clients[one.ID]
+
+	settings := adminRequest(fixture.gateway, cookie, csrf, "GET", "/admin/api/settings", `{}`)
+	if settings.Code != 200 {
+		t.Fatalf("settings read failed: %d %s", settings.Code, settings.Body.String())
+	}
+	var view struct {
+		Proxy  string `json:"proxy"`
+		Source string `json:"source"`
+	}
+	if err := json.Unmarshal(settings.Body.Bytes(), &view); err != nil || view.Source == "" {
+		t.Fatalf("settings view incomplete: %s", settings.Body.String())
+	}
+
+	proxyURL := "socks5://127.0.0.1:1080"
+	applied := adminRequest(fixture.gateway, cookie, csrf, "POST", "/admin/api/settings", `{"proxy":"`+proxyURL+`"}`)
+	if applied.Code != 200 {
+		t.Fatalf("proxy apply failed: %d %s", applied.Code, applied.Body.String())
+	}
+	if fixture.gateway.proxyValue != proxyURL {
+		t.Fatal("proxy value not applied to the shared client")
+	}
+	if fixture.clients[one.ID] == before {
+		t.Fatal("account client was not rebuilt with the new proxy")
+	}
+	persisted, err := os.ReadFile(gatewaySettingsPath(fixture.gateway.dataDir))
+	if err != nil || !strings.Contains(string(persisted), proxyURL) {
+		t.Fatalf("proxy setting not persisted: %v %s", err, persisted)
+	}
+	blocked := adminRequest(fixture.gateway, cookie, csrf, "POST", "/admin/api/settings", `{"proxy":"ftp://bad"}`)
+	if blocked.Code != 400 {
+		t.Fatalf("invalid proxy accepted: %d %s", blocked.Code, blocked.Body.String())
+	}
+	direct := adminRequest(fixture.gateway, cookie, csrf, "POST", "/admin/api/settings", `{"proxy":"direct"}`)
+	if direct.Code != 200 || !strings.Contains(direct.Body.String(), "direct") {
+		t.Fatalf("direct proxy rejected: %d %s", direct.Code, direct.Body.String())
+	}
+}
+
+func TestGatewayStartsProxyFromSavedSettings(t *testing.T) {
+	root := t.TempDir()
+	if err := os.WriteFile(gatewaySettingsPath(root), []byte(`{"proxy":"socks5://127.0.0.1:1080"}`), 0600); err != nil {
+		t.Fatal(err)
+	}
+	factory := func(config AccountClientConfig) (AccountClient, error) {
+		return &fakeClient{config: config, runStarted: make(chan struct{}), runStopped: make(chan struct{})}, nil
+	}
+	gateway, err := New(Config{DataDir: root, AdminKey: testAdminKey, AccountClientFactory: factory})
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer gateway.Close()
+	if gateway.proxyValue != "socks5://127.0.0.1:1080" {
+		t.Fatalf("saved proxy setting ignored: %q", gateway.proxyValue)
+	}
+}
+
+func TestLogsRecordHTTPAuthAndFilter(t *testing.T) {
+	fixture := newFixture(t)
+	fixture.add(t, "one")
+	cookie, csrf := adminLogin(t, fixture.gateway)
+	adminRequest(fixture.gateway, cookie, csrf, "GET", "/admin/api/overview", `{}`)
+	response := adminRequest(fixture.gateway, cookie, csrf, "GET", "/admin/api/logs?type=http", `{}`)
+	if response.Code != 200 {
+		t.Fatalf("logs read failed: %d %s", response.Code, response.Body.String())
+	}
+	var body struct {
+		Entries []LogEntry `json:"entries"`
+		File    string     `json:"file"`
+	}
+	if err := json.Unmarshal(response.Body.Bytes(), &body); err != nil {
+		t.Fatal(err)
+	}
+	if len(body.Entries) == 0 {
+		t.Fatal("no HTTP log entries recorded")
+	}
+	for _, entry := range body.Entries {
+		if entry.Type != "http" {
+			t.Fatalf("type filter leaked %s", entry.Type)
+		}
+		if strings.Contains(entry.Events, "Bearer") || strings.Contains(entry.Events, "test-admin-key") {
+			t.Fatal("HTTP log leaked authorization material")
+		}
+	}
+	if !strings.Contains(body.File, "logs") {
+		t.Fatalf("log file path missing: %q", body.File)
+	}
+	all := adminRequest(fixture.gateway, cookie, csrf, "GET", "/admin/api/logs", `{}`)
+	if !strings.Contains(all.Body.String(), `"auth"`) || !strings.Contains(all.Body.String(), `"system"`) {
+		t.Fatal("auth or system events missing from logs")
+	}
+}
+
 func TestStorageUsesPerRecordFilesAndMigratesLegacyMetadata(t *testing.T) {
 	fixture := newFixture(t)
 	one := fixture.add(t, "one")

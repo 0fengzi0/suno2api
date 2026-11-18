@@ -41,8 +41,10 @@ func (gateway *Gateway) downloadAsset(ctx context.Context, input downloadInput) 
 	result, err := runtime.client.Download(operation, input.URL, directory)
 	if err != nil {
 		_ = os.Remove(directory)
+		gateway.logf("warn", "download", "音频保存失败", map[string]any{"account": gateway.accountName(id), "error": operationErrorMessage(err)})
 		return FileView{}, err
 	}
+	gateway.logf("info", "download", "音频已保存", map[string]any{"account": gateway.accountName(id), "file": filepath.Base(result.Path), "bytes": result.Bytes})
 	relative, err := filepath.Rel(gateway.downloadDir, result.Path)
 	if err != nil || relative == ".." || strings.HasPrefix(relative, ".."+string(filepath.Separator)) || filepath.IsAbs(relative) {
 		return FileView{}, errors.New("invalid downloaded path")

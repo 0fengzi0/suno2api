@@ -8,6 +8,7 @@ import (
 	"mime"
 	"net/http"
 	"sort"
+	"strconv"
 	"strings"
 	"time"
 
@@ -26,6 +27,9 @@ func (gateway *Gateway) routes() {
 	gateway.mux.HandleFunc("POST /admin/api/accounts/{id}/restore", gateway.restoreAccountHTTP)
 	gateway.mux.HandleFunc("POST /admin/api/accounts/{id}/check", gateway.checkAccountHTTP)
 	gateway.mux.HandleFunc("POST /admin/api/accounts/{id}/refresh", gateway.refreshAccountHTTP)
+	gateway.mux.HandleFunc("GET /admin/api/logs", gateway.listLogsHTTP)
+	gateway.mux.HandleFunc("GET /admin/api/settings", gateway.getSettingsHTTP)
+	gateway.mux.HandleFunc("POST /admin/api/settings", gateway.saveSettingsHTTP)
 	gateway.mux.HandleFunc("GET /admin/api/keys", gateway.listKeys)
 	gateway.mux.HandleFunc("POST /admin/api/keys", gateway.createKey)
 	gateway.mux.HandleFunc("DELETE /admin/api/keys/{id}", gateway.revokeKey)
@@ -240,6 +244,54 @@ func (gateway *Gateway) refreshAccountHTTP(writer http.ResponseWriter, request *
 		return
 	}
 	writeJSON(writer, 200, map[string]any{"account": gateway.viewAccountLocked(id)})
+}
+
+func (gateway *Gateway) listLogsHTTP(writer http.ResponseWriter, request *http.Request) {
+	limit := 200
+	if parsed, err := strconv.Atoi(request.URL.Query().Get("limit")); err == nil && parsed >= 1 && parsed <= 1000 {
+		limit = parsed
+	}
+	entries := gateway.logs.query(limit, request.URL.Query().Get("type"))
+	writeJSON(writer, 200, map[string]any{"entries": entries, "file": gateway.logs.logFile()})
+}
+
+func (gateway *Gateway) getSettingsHTTP(writer http.ResponseWriter, request *http.Request) {
+	gateway.mu.Lock()
+	proxy, source := gateway.proxyValue, gateway.proxySource
+	gateway.mu.Unlock()
+	writeJSON(writer, 200, map[string]any{"proxy": proxy, "source": source})
+}
+
+func (gateway *Gateway) saveSettingsHTTP(writer http.ResponseWriter, request *http.Request) {
+	var body struct {
+		Proxy string `json:"proxy"`
+	}
+	if !decodeJSON(writer, request, &body) {
+		return
+	}
+	value, err := validateProxyInput(body.Proxy)
+	if err != nil {
+		writeError(writer, 400, "invalid_proxy", err.Error())
+		return
+	}
+	gateway.mu.Lock()
+	source, applyErr := gateway.applyProxyLocked(value)
+	gateway.mu.Unlock()
+	if applyErr != nil {
+		writeError(writer, 400, "invalid_proxy", applyErr.Error())
+		return
+	}
+	if err := saveGatewaySettings(gatewaySettingsPath(gateway.dataDir), gatewaySettings{Proxy: value}); err != nil {
+		gateway.logf("error", "settings", "代理已生效但持久化失败", map[string]any{"error": err.Error()})
+		writeError(writer, 500, "storage_error", "代理已生效，但设置保存失败，请检查数据目录权限")
+		return
+	}
+	display := value
+	if display == "" {
+		display = "自动检测"
+	}
+	gateway.logf("info", "settings", "全局代理已更新", map[string]any{"proxy": display, "source": source})
+	writeJSON(writer, 200, map[string]any{"proxy": value, "source": source})
 }
 
 func (gateway *Gateway) keyViewsLocked() []APIKeyView {

@@ -12,6 +12,31 @@ import (
 const sessionCookieName = "suno_gateway_admin"
 
 func (gateway *Gateway) ServeHTTP(writer http.ResponseWriter, request *http.Request) {
+	if request.URL.Path == "/health" || strings.HasPrefix(request.URL.Path, "/assets/") {
+		gateway.serveHTTP(writer, request)
+		return
+	}
+	start := time.Now()
+	recorder := &statusRecorder{ResponseWriter: writer, status: http.StatusOK}
+	gateway.serveHTTP(recorder, request)
+	gateway.logf("info", "http", request.Method+" "+request.URL.Path, map[string]any{
+		"status":      recorder.status,
+		"duration_ms": time.Since(start).Milliseconds(),
+		"admin":       strings.HasPrefix(request.URL.Path, "/admin/api/"),
+	})
+}
+
+type statusRecorder struct {
+	http.ResponseWriter
+	status int
+}
+
+func (recorder *statusRecorder) WriteHeader(code int) {
+	recorder.status = code
+	recorder.ResponseWriter.WriteHeader(code)
+}
+
+func (gateway *Gateway) serveHTTP(writer http.ResponseWriter, request *http.Request) {
 	writer.Header().Set("X-Content-Type-Options", "nosniff")
 	writer.Header().Set("Referrer-Policy", "no-referrer")
 	writer.Header().Set("Cache-Control", "no-store")
@@ -158,6 +183,7 @@ func (gateway *Gateway) login(writer http.ResponseWriter, request *http.Request)
 		return
 	}
 	if subtle.ConstantTimeCompare([]byte(digest(body.Key)), []byte(gateway.adminKey)) != 1 {
+		gateway.logf("warn", "auth", "管理员登录失败：密钥不正确", map[string]any{"host": host})
 		writeError(writer, http.StatusUnauthorized, "invalid_admin_key", "管理员密钥无效")
 		return
 	}
@@ -186,5 +212,6 @@ func (gateway *Gateway) login(writer http.ResponseWriter, request *http.Request)
 	delete(gateway.loginAttempts, host)
 	gateway.mu.Unlock()
 	http.SetCookie(writer, &http.Cookie{Name: sessionCookieName, Value: token, Path: "/", HttpOnly: true, Secure: request.TLS != nil, SameSite: http.SameSiteStrictMode, MaxAge: 43200})
+	gateway.logf("info", "auth", "管理员登录成功", map[string]any{"host": host})
 	writeJSON(writer, http.StatusOK, map[string]any{"authenticated": true, "csrf_token": csrf})
 }

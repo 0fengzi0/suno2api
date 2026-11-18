@@ -146,6 +146,13 @@ Invoke-RestMethod http://127.0.0.1:8080/v1/audio/generations -Method Post -Heade
 
 生成和下载都会使用原账号的正常登录与播放许可。遇到余额不足、需要验证、会话失效或下载许可拒绝时返回对应状态，不购买订阅、不伪造凭据、不代答验证码。仅检查连接时使用不创建任务的 `GET /health`。管理员接口使用独立登录会话和 CSRF 令牌，公共 API 密钥不能管理账号或创建其他密钥。
 
+## 全局代理与运行日志
+
+管理页面新增「系统设置」页：
+
+- **全局代理**：留空自动检测（SUNO_PROXY、标准代理环境变量、Windows 用户代理），`direct` 强制直连，或填 `http://`、`https://`、`socks5://` 地址。保存后写入数据目录 `settings.json` 并立即重建所有账号连接（正在执行的任务会中断），对生成、续期、余额检查与下载统一生效；当前生效来源显示在页面上。启动命令行显式 `--proxy` 时以命令行为准并同步保存。
+- **运行日志**：内存保留最近 1000 条，可按类型筛选（HTTP/登录/账号/任务/下载/设置/系统），同时按天写入数据目录 `logs/gateway-YYYYMMDD.log`（JSON 行），超过 14 天自动清理。日志只记录方法、路径、状态、耗时与安全映射后的错误消息，不记录 Authorization、Cookie、API 密钥或 Suno 凭据。接口：`GET /admin/api/logs?limit=&type=`（管理登录）。
+
 ## 配置与数据
 
 优先级从高到低：命令行参数、进程环境变量、`.env`、JSON 配置文件、内置默认值。JSON 中的相对路径相对于该配置文件解析；`.env` 和命令行中的相对路径相对于当前工作目录。
@@ -172,6 +179,14 @@ SUNO_REQUEST_TIMEOUT=10m
   "gateway_data_dir": "data/gateway",
   "gateway_admin_key_file": "my-admin.key",
   "gateway_api_style": "both"
+}
+```
+
+`settings.json`（数据目录内，管理页「系统设置」写入）保存全局代理：
+
+```json
+{
+  "proxy": ""
 }
 ```
 

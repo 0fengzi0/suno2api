@@ -27,7 +27,8 @@ type AccountClientConfig struct {
 type AccountClientFactory func(AccountClientConfig) (AccountClient, error)
 type Config struct {
 	DataDir              string
-	HTTPClient           *http.Client
+	Proxy                string
+	ProxyExplicit        bool
 	AdminKey             string
 	DownloadDir          string
 	RequestTimeout       time.Duration
