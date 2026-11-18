@@ -1,6 +1,6 @@
 # suno2api
 
-用 Go 实现的 Suno 歌曲生成、分享链接下载工具，提供命令行和本地 HTTP 服务。默认使用当前官方网页协议，适配用户提供的网页 Cookie；同时保留用户提供的 Suno Android 1.97.1 安装包协议。依据见 [安装包分析](docs/reverse-engineering.md) 与 [网页协议核对](docs/web-generation-comparison.md)。
+用 Go 实现的 Suno 歌曲生成、分享链接下载工具，提供命令行和本地 HTTP 服务。**默认使用 Suno 安卓 App（1.97.1 安装包）接口** `https://studio-api-prod.suno.com/api/`，已真机验证可用；官网网页接口 `https://suno.com/a/api/` 作为备用协议，可全局或按账号显式切换。协议差异依据见 [安装包分析](docs/reverse-engineering.md)、[网页协议对比](docs/web-generation-comparison.md) 与 [安卓/网页一致性及人机验证复核](docs/mobile-captcha-notes.md)。依据见 [安装包分析](docs/reverse-engineering.md) 与 [网页协议核对](docs/web-generation-comparison.md)。
 
 默认生成模型为 **v6-mini**，对应实际接口参数 `mv: "chirp-goose"`，符合当前 Free 账号配置。输入 `--model v6-mini` 或 `--model chirp-goose` 等价，不会自动切换到 v6 付费模型。
 
@@ -72,7 +72,7 @@ go build -o dist/suno2api.exe ./cmd/suno2api
 .\dist\suno2api.exe billing --token-file .\session.token
 ```
 
-网页协议需要原始 Cookie 中的 `__session` 与 `ajs_anonymous_id`。歌曲 API 只收到会话 token 和实际 Device-Id，不收到整份 Cookie；只有单个 JWT 时可用 `--device-id` 指定自己的现有设备标识。也支持 `SUNO_TOKEN_FILE` 或 `SUNO_TOKEN`。已配置 Cookie 文件时，默认在会话临近到期时通过 Suno 正常认证接口续期并原子写回；每次请求仍重新读取文件，以支持手工替换。
+默认安卓协议只需要 Cookie 中的 `__session` 会话 JWT；`ajs_anonymous_id` 仅在备用网页协议下作为 `Device-Id` 使用。歌曲 API 只收到会话 token（网页协议另收 Device-Id），不收到整份 Cookie；网页协议下只有单个 JWT 时可用 `--device-id` 指定自己的现有设备标识。也支持 `SUNO_TOKEN_FILE` 或 `SUNO_TOKEN`。已配置 Cookie 文件时，默认在会话临近到期时通过 Suno 正常认证接口续期并原子写回；每次请求仍重新读取文件，以支持手工替换。
 
 在多账号网关中，如果你只有认证 Cookie，也可单独填写；它必须同时含有效 `__session` 和 `ajs_anonymous_id`。缺少其中任一项时请再填写网站 Cookie。
 
@@ -80,7 +80,7 @@ go build -o dist/suno2api.exe ./cmd/suno2api
 
 ```json
 {
-  "protocol": "web",
+  "protocol": "android",
   "model": "v6-mini",
   "token_file": "session.token",
   "auto_refresh": true,
@@ -141,9 +141,7 @@ SUNO_REQUEST_TIMEOUT=10m
 .\dist\suno2api.exe generate --lyrics-file .\lyrics.txt --style "acoustic folk" --title "晚风" --model v6-mini --download
 ```
 
-`--protocol web` 默认走已核验的官方网页路径 `https://suno.com/a/api/generate/v2-web/`。网页请求使用官方普通客户端元数据、每次提交的新事务 UUID、当前会话 UUID，`Browser-Token` 仅为当前时间戳的普通 Base64 JSON，不涉及破解验证码或伪造签名。
-
-`--protocol android` 保留安装包接口 `https://studio-api-prod.suno.com/api/generate/v2/`。`--batch-size` 只发送给安卓协议；当前网页 builder 没有这个字段，网页模式由服务决定数量。服务可能返回额外模型结果，程序保留全部 ID，并优先等待和下载所请求模型。
+默认 `--protocol android` 走已真机验证的安装包接口 `https://studio-api-prod.suno.com/api/generate/v2/`，请求携带 `batch_size`（默认 2，可设 1）与 `stream=false`。备用 `--protocol web` 走官网网页路径 `https://suno.com/a/api/generate/v2-web/`，使用官方普通客户端元数据、每次提交的新事务 UUID 与会话 UUID，`Browser-Token` 仅为当前时间戳的普通 Base64 JSON；网页模式由服务端决定数量，不发送 `batch_size`。两者都不涉及破解验证码或伪造签名。服务可能返回额外模型结果，程序保留全部 ID，并优先等待和下载所请求模型。
 
 每次生成只提交一次 POST，使用账号现有额度。`--wait=false` 只提交并返回 ID；`--timeout 10m` 控制等待时间，轮询间隔默认 15 秒。超时表示本地停止等待，不能据此判断服务端任务已失败。可使用原 ID 恢复查询，不必再次生成：
 

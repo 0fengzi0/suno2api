@@ -56,7 +56,9 @@ type Client struct {
 func NewClient(config Config) (*Client, error) {
 	protocol := strings.ToLower(strings.TrimSpace(config.Protocol))
 	if protocol == "" {
-		protocol = "web"
+		// The Android app protocol is the primary client shape; the website
+		// protocol stays available as an explicit fallback.
+		protocol = "android"
 	}
 	if protocol != "web" && protocol != "android" {
 		return nil, errors.New("protocol must be web or android")

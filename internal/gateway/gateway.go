@@ -68,6 +68,15 @@ func New(config Config) (*Gateway, error) {
 	if config.DefaultModel == "" {
 		config.DefaultModel = "v6-mini"
 	}
+	defaultProtocol := strings.ToLower(strings.TrimSpace(config.DefaultProtocol))
+	if defaultProtocol == "" {
+		// Android is the primary protocol; web stays as the explicit fallback.
+		defaultProtocol = "android"
+	}
+	if defaultProtocol != "android" && defaultProtocol != "web" {
+		return nil, errors.New("gateway default protocol must be android or web")
+	}
+	config.DefaultProtocol = defaultProtocol
 	apiStyle, err := normalizeAPIStyle(config.APIStyle)
 	if err != nil {
 		return nil, err
@@ -351,7 +360,7 @@ func normalizeAccountCookies(input AccountInput, previousCookie string) (Account
 	return input, nil
 }
 
-func normalizeAccount(input AccountInput, model string) (AccountInput, error) {
+func normalizeAccount(input AccountInput, model, defaultProtocol string) (AccountInput, error) {
 	input.Name = strings.TrimSpace(input.Name)
 	if input.Name == "" || len(input.Name) > 100 {
 		return input, errors.New("账号名称须为1至100字符")
@@ -369,10 +378,10 @@ func normalizeAccount(input AccountInput, model string) (AccountInput, error) {
 		return input, errors.New("权重须为1至100，并发须为1至20")
 	}
 	if input.Protocol == "" {
-		input.Protocol = "web"
+		input.Protocol = defaultProtocol
 	}
 	if input.Protocol != "web" && input.Protocol != "android" {
-		return input, errors.New("协议须为web或android")
+		return input, errors.New("协议须为android或web")
 	}
 	if input.Model == "" {
 		input.Model = model
@@ -384,7 +393,7 @@ func (gateway *Gateway) addAccountLocked(input AccountInput) (AccountView, error
 	if gateway.closed {
 		return AccountView{}, errors.New("gateway is closed")
 	}
-	input, err := normalizeAccount(input, gateway.config.DefaultModel)
+	input, err := normalizeAccount(input, gateway.config.DefaultModel, gateway.config.DefaultProtocol)
 	if err != nil {
 		return AccountView{}, err
 	}
@@ -480,7 +489,7 @@ func (gateway *Gateway) updateAccountLocked(id string, input AccountInput) (Acco
 			return AccountView{}, err
 		}
 	}
-	input, err = normalizeAccount(input, gateway.config.DefaultModel)
+	input, err = normalizeAccount(input, gateway.config.DefaultModel, gateway.config.DefaultProtocol)
 	if err != nil {
 		return AccountView{}, err
 	}

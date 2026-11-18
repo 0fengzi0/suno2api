@@ -103,7 +103,7 @@ func run(arguments []string) error {
 	flags := flag.NewFlagSet(command, flag.ContinueOnError)
 	protocol := configuration.Protocol
 	if protocol == "" {
-		protocol = "web"
+		protocol = "android"
 	}
 	common := commonFlags{defaultModel: configuration.Model}
 	autoRefresh := true
@@ -117,7 +117,7 @@ func run(arguments []string) error {
 			return errors.New("refresh_before must be a positive duration, for example 60s")
 		}
 	}
-	flags.StringVar(&common.protocol, "protocol", protocol, "Suno protocol: web for website Cookie, android for APK API")
+	flags.StringVar(&common.protocol, "protocol", protocol, "Suno protocol: android for the app API (default), web for the website API fallback")
 	flags.StringVar(&common.deviceID, "device-id", configuration.DeviceID, "web Device-Id; default reads ajs_anonymous_id from your Cookie")
 	flags.StringVar(&common.tokenFile, "token-file", configuration.TokenFile, "file containing your Suno token or Cookie")
 	flags.StringVar(&common.authCookieFile, "auth-cookie-file", configuration.AuthCookieFile, "optional Cookie file from your own Suno authentication service session")

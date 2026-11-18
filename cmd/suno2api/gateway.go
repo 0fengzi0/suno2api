@@ -62,7 +62,7 @@ func gatewayCommand(ctx context.Context, flags *flag.FlagSet, arguments []string
 	if err != nil {
 		return err
 	}
-	service, err := gateway.New(gateway.Config{DataDir: dataDir, HTTPClient: httpClient, AdminKey: key, RequestTimeout: common.timeout, DefaultModel: common.defaultModel, APIStyle: apiStyle, WebHandler: web.Handler()})
+	service, err := gateway.New(gateway.Config{DataDir: dataDir, HTTPClient: httpClient, AdminKey: key, RequestTimeout: common.timeout, DefaultModel: common.defaultModel, DefaultProtocol: common.protocol, APIStyle: apiStyle, WebHandler: web.Handler()})
 	if err != nil {
 		return err
 	}

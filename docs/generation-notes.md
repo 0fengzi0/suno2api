@@ -1,6 +1,6 @@
 # 歌曲生成实现与验证
 
-生成客户端在 `internal/generate`，使用 Go 标准库。默认网页协议地址为 `https://suno.com/a/api/`，安卓协议保留 `https://studio-api-prod.suno.com/api/`。每个 profile 的主机和路径前缀受明确限制，不会将 Bearer 转发到其他域名或跟随鉴权请求的重定向。
+生成客户端在 `internal/generate`，使用 Go 标准库。**默认安卓协议**地址为 `https://studio-api-prod.suno.com/api/`（真机验证可用）；网页协议 `https://suno.com/a/api/` 作为显式备用。每个 profile 的主机和路径前缀受明确限制，不会将 Bearer 转发到其他域名或跟随鉴权请求的重定向。
 
 ## 当前成功结果
 

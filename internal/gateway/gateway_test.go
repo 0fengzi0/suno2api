@@ -803,6 +803,36 @@ func TestAPIStyleGatesRouteFamilies(t *testing.T) {
 	}
 }
 
+func TestAccountProtocolDefaultsToAndroidWithWebFallback(t *testing.T) {
+	fixture := newFixture(t)
+	primary := fixture.add(t, "android-default")
+	if primary.Protocol != "android" {
+		t.Fatalf("new account did not default to android protocol: %s", primary.Protocol)
+	}
+	webInput := AccountInput{Name: "web-fallback", Cookie: cookieFixture("web-user", "session-web"), Protocol: "web"}
+	fallback, err := fixture.gateway.AddAccount(context.Background(), webInput)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if fallback.Protocol != "web" {
+		t.Fatalf("explicit web fallback rejected: %s", fallback.Protocol)
+	}
+	if fixture.clients[fallback.ID].config.Protocol != "web" || fixture.clients[primary.ID].config.Protocol != "android" {
+		t.Fatal("account client did not receive the selected protocol")
+	}
+	gateway, err := New(Config{DataDir: t.TempDir(), AdminKey: testAdminKey, DefaultProtocol: "web", AccountClientFactory: fixture.gateway.config.AccountClientFactory})
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer gateway.Close()
+	if gateway.config.DefaultProtocol != "web" {
+		t.Fatal("explicit web default protocol was not honored")
+	}
+	if _, err := New(Config{DataDir: t.TempDir(), AdminKey: testAdminKey, DefaultProtocol: "invalid"}); err == nil {
+		t.Fatal("invalid default protocol accepted")
+	}
+}
+
 func TestStorageUsesPerRecordFilesAndMigratesLegacyMetadata(t *testing.T) {
 	fixture := newFixture(t)
 	one := fixture.add(t, "one")

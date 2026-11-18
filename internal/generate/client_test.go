@@ -118,6 +118,23 @@ func TestInstrumentalAndDescriptionNeverBecomeLyrics(t *testing.T) {
 	}
 }
 
+func TestEmptyProtocolDefaultsToAndroid(t *testing.T) {
+	client, err := NewClient(Config{Token: "test.token"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if client.protocol != "android" {
+		t.Fatalf("default protocol is not android: %s", client.protocol)
+	}
+	if !strings.Contains(client.baseURL.String(), "studio-api-prod.suno.com") {
+		t.Fatalf("android default base URL wrong: %s", client.baseURL)
+	}
+	client, err = NewClient(Config{Token: "test.token", Protocol: "web"})
+	if err != nil || client.protocol != "web" || !strings.Contains(client.baseURL.String(), "suno.com/a/api/") {
+		t.Fatalf("web fallback protocol unavailable: %v %s", err, client.baseURL)
+	}
+}
+
 func TestMiniAliasAndRequestedIDsExcludeOtherModels(t *testing.T) {
 	client := &Client{}
 	payload, err := client.payload(Request{Prompt: "piano", Model: "v6-mini"})

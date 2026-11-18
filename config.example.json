@@ -1,5 +1,5 @@
 {
-  "protocol": "web",
+  "protocol": "android",
   "model": "v6-mini",
   "token_file": "session.token",
   "auto_refresh": true,

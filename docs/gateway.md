@@ -1,6 +1,6 @@
 # 多账号网关
 
-网关把账号、正常会话续期、API 调用密钥和生成任务保存在本机文件里，不使用数据库。默认模型是 v6-mini，对应 `chirp-goose`。**直接运行二进制（不带参数）即启动网关 Web 应用**；`gateway` 子命令与之等价，原有 `generate`、`download`、`session`、`serve` 命令继续可用。
+网关把账号、正常会话续期、API 调用密钥和生成任务保存在本机文件里，不使用数据库。默认模型是 v6-mini，对应 `chirp-goose`；**默认协议是安卓 App 接口**（`studio-api-prod`，已真机验证），网页接口作为备用，可全局 `--protocol` 或按账号在管理页面切换。**直接运行二进制（不带参数）即启动网关 Web 应用**；`gateway` 子命令与之等价，原有 `generate`、`download`、`session`、`serve` 命令继续可用。
 
 ## 启动与登录
 
@@ -40,7 +40,7 @@ data/gateway/
 
 ## 添加账号与迁移现有账号
 
-登录后在账号页面粘贴自己账号的 Suno 页面 Cookie，可设置便于识别的名字。网站 Cookie 中的 `__session` 是 API 会话，`ajs_anonymous_id` 是网页设备标识。认证 Cookie 是你在 `auth.suno.com` 正常认证请求中使用的 Cookie，可能包含 `__client`，用于同一账号会话的续期。
+登录后在账号页面粘贴自己账号的 Suno 页面 Cookie，可设置便于识别的名字，并选择 API 协议（默认安卓 App 接口，网页接口为备用；两种协议共用同一份 Cookie）。网站 Cookie 中的 `__session` 是 API 会话，`ajs_anonymous_id` 是网页设备标识。认证 Cookie 是你在 `auth.suno.com` 正常认证请求中使用的 Cookie，可能包含 `__client`，用于同一账号会话的续期。
 
 认证 Cookie 可以单独填写，前提是它同时包含有效的 `__session` 和 `ajs_anonymous_id`。网关会从这份 Cookie 提取 API 登录会话和网页设备标识，并保存认证 Cookie 供续期。如果缺少 `__session`，或缺少 `ajs_anonymous_id`，则需再填写网站 Cookie。两份 Cookie 属于不同账号时网关会拒绝保存。Ably 实时消息 token 不是 Suno 登录凭据。
 
