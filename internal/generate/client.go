@@ -26,17 +26,18 @@ const DefaultModel = "chirp-goose"
 var clipIDPattern = regexp.MustCompile(`^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$`)
 
 type Config struct {
-	Protocol      string
-	DeviceID      string
-	Token         string
-	TokenFile     string
-	TokenProvider func(context.Context) (string, error)
-	BaseURL       string
-	HTTPClient    *http.Client
-	PollInterval  time.Duration
-	WaitTimeout   time.Duration
-	DefaultModel  string
-	ProxyURL      string
+	Protocol       string
+	DeviceID       string
+	Token          string
+	TokenFile      string
+	TokenProvider  func(context.Context) (string, error)
+	BaseURL        string
+	HTTPClient     *http.Client
+	PollInterval   time.Duration
+	WaitTimeout    time.Duration
+	DefaultModel   string
+	ProxyURL       string
+	OnCaptchaCheck func(CaptchaCheck)
 }
 
 type Client struct {
@@ -51,6 +52,7 @@ type Client struct {
 	pollInterval       time.Duration
 	waitTimeout        time.Duration
 	defaultModel       string
+	onCaptchaCheck     func(CaptchaCheck)
 }
 
 func NewClient(config Config) (*Client, error) {
@@ -142,7 +144,7 @@ func NewClient(config Config) (*Client, error) {
 	if err != nil {
 		return nil, err
 	}
-	return &Client{protocol: protocol, deviceID: config.DeviceID, createSessionToken: session, baseURL: parsed, httpClient: &client, token: config.Token, tokenFile: config.TokenFile, tokenProvider: config.TokenProvider, pollInterval: config.PollInterval, waitTimeout: config.WaitTimeout, defaultModel: config.DefaultModel}, nil
+	return &Client{protocol: protocol, deviceID: config.DeviceID, createSessionToken: session, baseURL: parsed, httpClient: &client, token: config.Token, tokenFile: config.TokenFile, tokenProvider: config.TokenProvider, pollInterval: config.PollInterval, waitTimeout: config.WaitTimeout, defaultModel: config.DefaultModel, onCaptchaCheck: config.OnCaptchaCheck}, nil
 }
 
 func (client *Client) currentToken(ctx context.Context) (string, error) {
@@ -214,7 +216,11 @@ func (client *Client) CheckCaptcha(ctx context.Context) (CaptchaCheck, error) {
 	if response.Required == nil {
 		return CaptchaCheck{}, errors.New("Suno verification check omitted the required field; generation was not submitted")
 	}
-	return CaptchaCheck{Required: *response.Required, CaptchaVersion: response.CaptchaVersion}, nil
+	verification := CaptchaCheck{Required: *response.Required, CaptchaVersion: response.CaptchaVersion}
+	if client.onCaptchaCheck != nil {
+		client.onCaptchaCheck(verification)
+	}
+	return verification, nil
 }
 
 func (client *Client) Billing(ctx context.Context) (BillingInfo, error) {
@@ -383,6 +389,12 @@ func (client *Client) call(ctx context.Context, method, path string, body any, r
 		return errors.New("Suno response exceeds 4 MiB")
 	}
 	if response.StatusCode < 200 || response.StatusCode >= 300 {
+		// A Cloudflare challenge on the API host is a browser-verification
+		// requirement, not an ordinary upstream error: without this check the
+		// HTML challenge page would be misreported as a generic 403.
+		if strings.EqualFold(response.Header.Get("CF-Mitigated"), "challenge") {
+			return &APIError{StatusCode: response.StatusCode, Code: "challenge", Message: "Cloudflare requires browser verification for this Suno request; complete verification in the official Suno site or app and supply the resulting verification token if supported", Cause: ErrCaptchaRequired}
+		}
 		apiError := parseAPIError(response.StatusCode, payload, token, extraSecret)
 		if seconds, err := strconv.Atoi(response.Header.Get("Retry-After")); err == nil && seconds > 0 && seconds <= 86400 {
 			apiError.RetryAfter = time.Duration(seconds) * time.Second

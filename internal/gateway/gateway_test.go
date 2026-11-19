@@ -38,6 +38,7 @@ type fakeClient struct {
 	lastRequest generate.Request
 	getBlock    bool
 	getStarted  chan struct{}
+	emitCaptcha bool
 }
 
 func (client *fakeClient) Generate(ctx context.Context, input generate.Request) (generate.Response, error) {
@@ -46,7 +47,11 @@ func (client *fakeClient) Generate(ctx context.Context, input generate.Request) 
 	client.lastRequest = input
 	response, err := client.response, client.failure
 	block := client.block
+	emit := client.emitCaptcha
 	client.mu.Unlock()
+	if emit && client.config.OnCaptchaCheck != nil {
+		client.config.OnCaptchaCheck(generate.CaptchaCheck{Required: true, CaptchaVersion: 2})
+	}
 	if block != nil {
 		select {
 		case <-ctx.Done():
@@ -980,5 +985,35 @@ func TestStorageUsesPerRecordFilesAndMigratesLegacyMetadata(t *testing.T) {
 	}
 	if migrated.accounts[accountID] == nil {
 		t.Fatal("disabled migrated account lost its maintenance runtime")
+	}
+}
+
+func TestCaptchaPreflightOutcomeIsLoggedPerAccount(t *testing.T) {
+	fixture := newFixture(t)
+	view := fixture.add(t, "one")
+	fixture.mu.Lock()
+	client := fixture.clients[view.ID]
+	fixture.mu.Unlock()
+	client.mu.Lock()
+	client.emitCaptcha = true
+	client.mu.Unlock()
+	job, runtime, err := fixture.gateway.startJob(view.ID, "v6-mini")
+	if err != nil {
+		t.Fatal(err)
+	}
+	fixture.gateway.wait.Add(1)
+	go fixture.gateway.submitJob(job.ID, runtime, generate.Request{Prompt: "gentle piano", Instrumental: true, BatchSize: 1})
+	waitJob(t, fixture.gateway, job.ID)
+	entries := fixture.gateway.logs.query(0, "captcha")
+	if len(entries) == 0 {
+		t.Fatal("captcha preflight event missing")
+	}
+	entry := entries[len(entries)-1]
+	if entry.Level != "warn" {
+		t.Fatalf("required verification must be a warn entry: %#v", entry)
+	}
+	fields, _ := json.Marshal(entry.Fields)
+	if !strings.Contains(string(fields), `"required":true`) || !strings.Contains(string(fields), `"account":"one"`) {
+		t.Fatalf("captcha entry fields incomplete: %s", fields)
 	}
 }

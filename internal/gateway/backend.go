@@ -35,7 +35,7 @@ func defaultFactory(config AccountClientConfig) (AccountClient, error) {
 		}
 		return token, nil
 	}
-	generator, err := generate.NewClient(generate.Config{Protocol: config.Protocol, DefaultModel: config.Model, TokenFile: config.TokenFile, TokenProvider: provider, HTTPClient: config.HTTPClient})
+	generator, err := generate.NewClient(generate.Config{Protocol: config.Protocol, DefaultModel: config.Model, TokenFile: config.TokenFile, TokenProvider: provider, HTTPClient: config.HTTPClient, OnCaptchaCheck: config.OnCaptchaCheck})
 	if err != nil {
 		return nil, err
 	}

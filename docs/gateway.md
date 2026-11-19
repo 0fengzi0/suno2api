@@ -151,7 +151,7 @@ Invoke-RestMethod http://127.0.0.1:8080/v1/audio/generations -Method Post -Heade
 管理页面新增「系统设置」页：
 
 - **全局代理**：留空自动检测（SUNO_PROXY、标准代理环境变量、Windows 用户代理），`direct` 强制直连，或填 `http://`、`https://`、`socks5://` 地址。保存后写入数据目录 `settings.json` 并立即重建所有账号连接（正在执行的任务会中断），对生成、续期、余额检查与下载统一生效；当前生效来源显示在页面上。启动命令行显式 `--proxy` 时以命令行为准并同步保存。
-- **运行日志**：内存保留最近 1000 条，可按类型筛选（HTTP/登录/账号/任务/下载/设置/系统），同时按天写入数据目录 `logs/gateway-YYYYMMDD.log`（JSON 行），超过 14 天自动清理。日志只记录方法、路径、状态、耗时与安全映射后的错误消息，不记录 Authorization、Cookie、API 密钥或 Suno 凭据。接口：`GET /admin/api/logs?limit=&type=`（管理登录）。
+- **运行日志**：内存保留最近 1000 条，可按类型筛选（HTTP/登录/账号/任务/下载/设置/系统/人机验证），同时按天写入数据目录 `logs/gateway-YYYYMMDD.log`（JSON 行），超过 14 天自动清理。日志只记录方法、路径、状态、耗时与安全映射后的错误消息，不记录 Authorization、Cookie、API 密钥或 Suno 凭据。每次生成前 `c/check` 预检都会记录一条 `captcha` 事件（账号、是否要求验证、captcha_version），用于追溯账号从何时开始被 Suno 要求人机验证。接口：`GET /admin/api/logs?limit=&type=`（管理登录）。
 
 ## 配置与数据
 

@@ -23,6 +23,7 @@ type AccountClient interface {
 type AccountClientConfig struct {
 	ID, TokenFile, AuthCookieFile, Protocol, Model string
 	HTTPClient                                     *http.Client
+	OnCaptchaCheck                                 func(generate.CaptchaCheck)
 }
 type AccountClientFactory func(AccountClientConfig) (AccountClient, error)
 type Config struct {

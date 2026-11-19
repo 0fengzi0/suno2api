@@ -299,3 +299,72 @@ func TestErrorCategoriesAndDestinationValidation(t *testing.T) {
 		}
 	}
 }
+
+func TestChallengeHeaderClassifiesVerificationAndBlocksSubmission(t *testing.T) {
+	var submitted atomic.Int32
+	server := httptest.NewServer(http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
+		switch request.URL.Path {
+		case "/api/c/check":
+			writer.Header().Set("CF-Mitigated", "challenge")
+			writer.WriteHeader(http.StatusForbidden)
+			fmt.Fprint(writer, "<html><title>Just a moment...</title></html>")
+		case "/api/generate/v2/":
+			submitted.Add(1)
+			http.Error(writer, "forbidden", http.StatusForbidden)
+		default:
+			t.Errorf("unexpected path %s", request.URL.Path)
+			http.NotFound(writer, request)
+		}
+	}))
+	defer server.Close()
+	client := testClient(t, server)
+	_, err := client.Generate(context.Background(), Request{Prompt: "gentle piano", Instrumental: true, BatchSize: 1})
+	if !errors.Is(err, ErrCaptchaRequired) {
+		t.Fatalf("challenge header was not classified as a verification requirement: %v", err)
+	}
+	if submitted.Load() != 0 {
+		t.Fatal("generation was submitted despite the challenge")
+	}
+}
+
+func TestChallengeHeaderIsRequiredForCaptchaClassification(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
+		writer.WriteHeader(http.StatusForbidden)
+		fmt.Fprint(writer, `{"detail":"forbidden"}`)
+	}))
+	defer server.Close()
+	client := testClient(t, server)
+	_, err := client.CheckCaptcha(context.Background())
+	var apiError *APIError
+	if !errors.As(err, &apiError) || errors.Is(err, ErrCaptchaRequired) {
+		t.Fatalf("plain 403 must stay a generic API error: %v", err)
+	}
+}
+
+func TestCheckCaptchaReportsResultToObserver(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
+		if request.URL.Path != "/api/c/check" {
+			t.Errorf("unexpected path %s", request.URL.Path)
+			http.NotFound(writer, request)
+			return
+		}
+		fmt.Fprint(writer, `{"required":true,"captcha_version":2}`)
+	}))
+	defer server.Close()
+	var calls atomic.Int32
+	var seen CaptchaCheck
+	client, err := NewClient(Config{Protocol: "android", BaseURL: server.URL + "/api/", Token: "test.token.value", HTTPClient: server.Client(), OnCaptchaCheck: func(check CaptchaCheck) {
+		calls.Add(1)
+		seen = check
+	}})
+	if err != nil {
+		t.Fatal(err)
+	}
+	check, err := client.CheckCaptcha(context.Background())
+	if err != nil || !check.Required || check.CaptchaVersion != 2 {
+		t.Fatalf("check failed: %#v %v", check, err)
+	}
+	if calls.Load() != 1 || !seen.Required || seen.CaptchaVersion != 2 {
+		t.Fatalf("observer did not receive the preflight result: %d %#v", calls.Load(), seen)
+	}
+}

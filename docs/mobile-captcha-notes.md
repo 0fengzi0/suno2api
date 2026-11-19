@@ -57,7 +57,16 @@ REA 的 `search_android_classes` 全量搜索在该 APK 上仍触发 "JADX class
 - 安卓协议的 `c/check` 已在实现中；历史真机联调记录为 `required=false`（见 `docs/generation-notes.md`），日常生成一般不触发挑战。
 - 若服务端返回 `required=true`：安卓协议需要**真实 hCaptcha token**（invisible WebView 挑战，sitekey/rqdata 由服务端下发），网页协议需要对应 `captcha_version` 的 Turnstile/hCaptcha token。两者都只能由用户在官方客户端/页面正常完成挑战后提供，程序不代答、不伪造——当前实现已按此设计（`--captcha-token` / 网关 `token` 透传，`required=true` 且无 token 时明确报错不提交）。
 - 安卓端另有 Play Integrity 设备证明通道（nonce + integrity token）。静态证据不能证明普通文本生成必然要求它；但若服务端对移动客户端收紧，这是安卓协议独立于 hCaptcha 的额外门槛，第三方调用比网页协议更难满足。
-- 因此对外暴露的网关 API 默认使用网页协议（与当前会话材料匹配），安卓协议保留为显式可选项，这一取舍与两端协议不可互换的核对结论一致。
+- 因此对外暴露的网关 API 默认使用网页协议（与当前会话材料匹配），安卓协议保留为显式可选项，这一取舍与两端协议不可互换的核对结论一致。（2026-11-18 起默认协议已切换为安卓 App 接口、网页降级为备用，见提交 5833977。）
+- 2026-11-19 排查补充：生成客户端在任一 API 响应（含 `c/check` 预检）带 `CF-Mitigated: challenge` 头时按"需要人机验证"归类并停止提交；会话续期对不带该头的 Cloudflare HTML 挑战页按正文特征（`Just a moment`、`cf-chl`、`challenge-platform` 等）识别为 `verification_required`，其余 403 仍保持未分类，不冒充挑战结论；网关为每次 `c/check` 预检记录 `captcha` 事件（账号、required、captcha_version）。服务端在何种账号/风控状态置 `required=true` 的阈值仍只能线上观察，这份事件日志即观察入口。
+
+## 2026-11-19 无人值守线上复核
+
+协议漂移复核（REA）：以无 Cookie 的普通 GET 重新获取 `https://suno.com/create` 及其 118 个公开脚本 chunk（保留于 `work/rea-web-recheck-20261119/`），REA Evidence `ev_c887aeea9ff91496dc2420928b81cb9aae0c7be5bb11ef186bd2a95de9687fa6`（4 个关键 chunk，88,925 AST 节点，0 解析失败；大 builder chunk 的语义图因资源约束截断，已记录）。逐项与 `web-generation-comparison.md` 基线核对：`POST /api/c/check {ctype}` 与 `required`+`captcha_version` 读取、`/api/generate/v2-web/` 路径、条件式 `Authorization`/`Device-Id`/`Browser-Token`/`Referring-*` 头、`Browser-Token` 时间戳包装、builder 的 `token`/`token_provider` 槽位均未漂移；新增观察为验证码版本选择的 `isTurnstileFallbackLatched` 回退锁存。**结论：本实现的网页请求形状与当前官方客户端一致，无因协议漂移触发风控的因素。**
+
+线上探针（新构建二进制，走网关同款 socks5 代理，全部请求无 Cookie 头、凭据仅经 `--token-file` 传入）：两个网关账号在**安卓与网页两种协议下 `c/check` 均返回 `required=true, captcha_version=1`（hCaptcha）**；billing、clip 查询等只读链路不受门控影响（HTTP 200）；不带 token 的 `generate` 被客户端在提交前正确拒绝（"no generation was submitted"），额度事后核对未消耗（80 不变）。网关任务历史显示 2026-11-18 22:52 至 11-19 01:18（北京时间）该账号有 6 次任务因验证门控失败、2 次 `submission_unknown`，此前 11-17 有一次完整成功——门控呈**阵发性**，时段过后解除。脱敏探针记录在 `work/rea-web-recheck-20261119/live-probes.json`。
+
+用户"官方页面多次未触发验证"的体感与 API 侧 `required=true` 并存的解释边界：官方客户端/页面的 hCaptcha 为 INVISIBLE 模式，可信环境下挑战自动通过，用户感知不到；同一账号状态在第三方 API 调用侧即表现为 `required=true`。该解释为静态证据推断，服务端逐会话/逐请求的判定依据无法离线证明。门控期间的唯一合规出路仍是不代答：由用户在官方页面完成挑战后提供真实 token（`--captcha-token` / 网关 `token` 透传），或等待门控时段自行解除。
 
 ### 尚未由本次静态分析证明
 

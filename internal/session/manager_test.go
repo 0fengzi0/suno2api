@@ -396,3 +396,38 @@ func TestRunSuccessfulEventCancellationDoesNotEmitSpuriousStoppedEvent(t *testin
 		t.Fatalf("successful cancellation emitted spurious events or additional requests: calls=%d states=%v err=%v", calls.Load(), states, err)
 	}
 }
+
+func TestChallengePageWithoutMitigatedHeaderStopsAsVerificationRequired(t *testing.T) {
+	now := time.Now().Unix()
+	old := tokenFixture("session", "user", now-300, now-1)
+	path := fileFixture(t, old, true)
+	manager := managerFixture(t, path, func(writer http.ResponseWriter, request *http.Request) {
+		writer.Header().Set("Content-Type", "text/html")
+		writer.WriteHeader(http.StatusForbidden)
+		fmt.Fprint(writer, "<!DOCTYPE html><html><head><title>Just a moment...</title></head><body><script src=\"/cdn-cgi/challenge-platform/h/b/orchestrate/chl_page/v1\"></script>Enable JavaScript and cookies to continue</body></html>")
+	})
+	_, err := manager.Refresh(context.Background())
+	var refreshErr *Error
+	if !errors.Is(err, ErrChallenge) || !errors.As(err, &refreshErr) || refreshErr.Code != "verification_required" {
+		t.Fatalf("HTML challenge page was not treated as a verification requirement: %v", err)
+	}
+	contents, _ := os.ReadFile(path)
+	if !strings.Contains(string(contents), old) {
+		t.Fatal("challenge response changed the token file")
+	}
+}
+
+func TestPlainHTMLForbiddenWithoutChallengeMarkersStaysUnclassified(t *testing.T) {
+	now := time.Now().Unix()
+	old := tokenFixture("session", "user", now-300, now-1)
+	manager := managerFixture(t, fileFixture(t, old, true), func(writer http.ResponseWriter, request *http.Request) {
+		writer.Header().Set("Content-Type", "text/html")
+		writer.WriteHeader(http.StatusForbidden)
+		fmt.Fprint(writer, "<html><body>Access denied</body></html>")
+	})
+	_, err := manager.Refresh(context.Background())
+	var refreshErr *Error
+	if !errors.Is(err, ErrRefreshRejected) || !errors.As(err, &refreshErr) || refreshErr.Code != "http_403_unclassified" {
+		t.Fatalf("403 without challenge markers must stay unclassified: %v", err)
+	}
+}

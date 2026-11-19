@@ -11,6 +11,7 @@ import (
 	"sync"
 	"time"
 
+	"suno2api/internal/generate"
 	"suno2api/internal/netconfig"
 	"suno2api/internal/session"
 )
@@ -216,6 +217,17 @@ func (gateway *Gateway) logf(level, typ, message string, fields map[string]any) 
 	}
 }
 
+// logCaptchaCheck records every generation preflight outcome, so the moment an
+// account first gets asked for human verification stays traceable afterwards.
+func (gateway *Gateway) logCaptchaCheck(accountID string, check generate.CaptchaCheck) {
+	fields := map[string]any{"account_id": accountID, "account": gateway.accountName(accountID), "required": check.Required, "captcha_version": check.CaptchaVersion}
+	if check.Required {
+		gateway.logf("warn", "captcha", "Suno生成预检要求人机验证，提交前需要官方验证令牌", fields)
+		return
+	}
+	gateway.logf("info", "captcha", "Suno生成预检未要求人机验证", fields)
+}
+
 // ProxySource reports the human-readable source of the effective proxy.
 func (gateway *Gateway) ProxySource() string { return gateway.proxySource }
 
@@ -287,7 +299,9 @@ func (gateway *Gateway) buildAccountLocked(id string) error {
 	if _, err := os.Stat(auth); os.IsNotExist(err) {
 		auth = ""
 	}
-	client, err := gateway.config.AccountClientFactory(AccountClientConfig{ID: id, TokenFile: gateway.credentialPath(id), AuthCookieFile: auth, Protocol: record.Protocol, Model: record.Model, HTTPClient: gateway.httpClient})
+	client, err := gateway.config.AccountClientFactory(AccountClientConfig{ID: id, TokenFile: gateway.credentialPath(id), AuthCookieFile: auth, Protocol: record.Protocol, Model: record.Model, HTTPClient: gateway.httpClient, OnCaptchaCheck: func(check generate.CaptchaCheck) {
+		gateway.logCaptchaCheck(id, check)
+	}})
 	if err != nil {
 		return err
 	}

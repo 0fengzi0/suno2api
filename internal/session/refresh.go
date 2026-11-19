@@ -37,10 +37,10 @@ func (manager *Manager) requestRefresh(ctx context.Context, source credential) (
 	case response.StatusCode == http.StatusUnauthorized:
 		return renewal{}, &Error{Code: "authentication_required", StatusCode: response.StatusCode, cause: ErrAuthentication}
 	case response.StatusCode == http.StatusForbidden:
-		if strings.EqualFold(response.Header.Get("CF-Mitigated"), "challenge") {
+		body, _ := boundedBody(response.Body)
+		if strings.EqualFold(response.Header.Get("CF-Mitigated"), "challenge") || challengeBody(body) {
 			return renewal{}, &Error{Code: "verification_required", StatusCode: response.StatusCode, cause: ErrChallenge}
 		}
-		body, _ := boundedBody(response.Body)
 		var payload struct {
 			Code   string `json:"code"`
 			Errors []struct {
@@ -125,4 +125,21 @@ func retryAfter(value string) time.Duration {
 		}
 	}
 	return 0
+}
+
+// challengeBody reports whether an error body carries common Cloudflare
+// challenge-page markers. Observed challenge responses do not always include
+// the CF-Mitigated header, so the body is the remaining signal; hard block
+// pages without these markers intentionally stay unclassified.
+func challengeBody(body []byte) bool {
+	if len(body) == 0 {
+		return false
+	}
+	lowered := strings.ToLower(string(body))
+	for _, marker := range []string{"just a moment", "cf-chl", "challenge-platform", "__cf_chl", "checking your browser", "enable javascript and cookies"} {
+		if strings.Contains(lowered, marker) {
+			return true
+		}
+	}
+	return false
 }

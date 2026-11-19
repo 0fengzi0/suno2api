@@ -42,7 +42,7 @@
 
 代理可通过 `Config.ProxyURL`、`SUNO_PROXY` 或标准 `HTTP_PROXY` / `HTTPS_PROXY` 配置，支持 `ALL_PROXY` 回退。Windows 系统代理由上层公共网络客户端读取并注入。不会修改操作系统网络设置。
 
-生成前使用 `CheckCaptcha(ctx)` 调用正规检查；缺失或不完整的检查结果会阻止提交。`required=true` 且没有用户手工完成验证取得的 token 时返回 `ErrCaptchaRequired`，不会发生成 POST。生成 POST 不自动重试，以免重复扣点。401、402、429 分别返回可识别错误。轮询默认每 15 秒一次，429 和服务器暂时错误尊重 `Retry-After`，并受调用 context 和默认 10 分钟上限限制。超时后保留原 ID 以便恢复查询，不能将超时当成服务端终态。失败歌曲返回 `GenerationError` 和已取得的歌曲状态。
+生成前使用 `CheckCaptcha(ctx)` 调用正规检查；缺失或不完整的检查结果会阻止提交。`required=true` 且没有用户手工完成验证取得的 token 时返回 `ErrCaptchaRequired`，不会发生成 POST。任一生成链路响应（含 `c/check` 自身）带 `CF-Mitigated: challenge` 头时同样归类为 `ErrCaptchaRequired`——这是 Cloudflare 对请求形状或出口 IP 的浏览器验证要求；不带该头的普通 403 仍按原错误分类处理，不冒充人机验证。`CheckCaptcha` 的结果可通过 `Config.OnCaptchaCheck` 回调上报给调用方。生成 POST 不自动重试，以免重复扣点。401、402、429 分别返回可识别错误。轮询默认每 15 秒一次，429 和服务器暂时错误尊重 `Retry-After`，并受调用 context 和默认 10 分钟上限限制。超时后保留原 ID 以便恢复查询，不能将超时当成服务端终态。失败歌曲返回 `GenerationError` 和已取得的歌曲状态。
 
 ## 验证范围
 
